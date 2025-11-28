@@ -1,0 +1,2820 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Minha Lista de Filmes e Séries</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #ffffff;
+      --bg-panel: #ffffff;
+      --bg-elevated: #ffffff;
+      --primary: #6366f1;
+      --primary-soft: rgba(99, 102, 241, 0.08);
+      --accent: #16a34a;
+      --danger: #dc2626;
+      --text: #111827;
+      --text-soft: #6b7280;
+      --border: #e5e7eb;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 6px;
+      --shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .page-shell {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(12px);
+      background: rgba(255, 255, 255, 0.9);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+    }
+
+    .topbar-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .logo-area { display: flex; align-items: center; gap: 10px; }
+
+    .logo-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, #4f46e5, #1d4ed8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #eef2ff;
+      font-weight: 700;
+      font-size: 0.9rem;
+      box-shadow: 0 10px 25px rgba(79, 70, 229, 0.5);
+    }
+
+    .logo-text { display: flex; flex-direction: column; }
+    .logo-text-title { font-weight: 600; font-size: 1.05rem; }
+    .logo-text-sub { font-size: 0.78rem; color: var(--text-soft); }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .chip {
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: #f9fafb;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      font-size: 0.75rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-soft);
+    }
+    .chip-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 8px rgba(34, 197, 94, 0.8);
+    }
+
+    .btn {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-weight: 500;
+      font-size: 0.8rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.18s ease-out;
+    }
+    .btn span { position: relative; top: 1px; }
+
+    .btn-primary {
+      background: var(--primary);
+      border-color: rgba(129, 140, 248, 0.6);
+      color: #f9fafb;
+      box-shadow: 0 10px 25px rgba(79, 70, 229, 0.4);
+    }
+    .btn-primary:hover {
+      filter: brightness(1.06);
+      transform: translateY(-1px);
+      box-shadow: 0 18px 40px rgba(79, 70, 229, 0.5);
+    }
+
+    .btn-outline {
+      background: #ffffff;
+      border-color: rgba(148, 163, 184, 0.7);
+      color: var(--text-soft);
+    }
+    .btn-outline:hover { background: #f3f4f6; }
+
+    .btn-danger {
+      background: #fef2f2;
+      border-color: #fecaca;
+      color: #b91c1c;
+    }
+    .btn-danger:hover { background: #fee2e2; }
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    main { flex: 1; }
+    .main-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    #message {
+      font-size: 0.8rem;
+      padding: 8px 10px;
+      border-radius: 999px;
+      align-self: flex-start;
+      min-height: 0;
+    }
+    #message.error {
+      background: #fef2f2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+    #message.success {
+      background: #ecfdf3;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
+    .panel {
+      background: var(--bg-panel);
+      border-radius: var(--radius-lg);
+      padding: 16px 16px 18px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .panel-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .panel-title span.icon { font-size: 1rem; opacity: 0.9; }
+
+    form {
+      background: #f9fafb;
+      padding: 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px 12px;
+      align-items: end;
+    }
+
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    label {
+      font-size: 0.76rem;
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 7px 9px;
+      border-radius: var(--radius-sm);
+      border: 1px solid #d1d5db;
+      background: #ffffff;
+      color: var(--text);
+      font-size: 0.84rem;
+      outline: none;
+      transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+      resize: vertical;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.3);
+      background: #ffffff;
+    }
+
+    input::placeholder,
+    textarea::placeholder { color: rgba(148, 163, 184, 0.9); }
+
+    .filters-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 8px;
+    }
+    .filters-row .form-field { min-width: 150px; }
+
+    .midias-import {
+      margin-top: 10px;
+      background: #f9fafb;
+      border-radius: var(--radius-md);
+      border: 1px dashed #d1d5db;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px 12px;
+      align-items: end;
+      font-size: 0.78rem;
+      color: var(--text-soft);
+    }
+    .midias-import small {
+      font-size: 0.74rem;
+      color: var(--text-soft);
+    }
+
+    .tabs-bar {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 6px;
+    }
+
+    .tab-status {
+      border: none;
+      background: transparent;
+      color: var(--text-soft);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.18s, color 0.18s, transform 0.1s;
+    }
+
+    .tab-status .tab-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.9);
+    }
+
+    .tab-status .tab-count {
+      font-size: 0.75rem;
+      color: var(--text-soft);
+    }
+
+    .tab-status-active {
+      background: #e0ecff;
+      color: #1d4ed8;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 15px rgba(37, 99, 235, 0.2);
+    }
+
+    .tab-status-active .tab-dot {
+      background: #2563eb;
+      box-shadow: 0 0 10px rgba(37, 99, 235, 0.7);
+    }
+
+    .cards-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .card {
+      background: #f9fafb;
+      border-radius: 10px;
+      padding: 8px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      border: 1px solid #e5e7eb;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card:hover {
+      border-color: #c7d2fe;
+      background: #eff6ff;
+      transform: translateY(-1px);
+      transition: all 0.16s ease-out;
+    }
+
+    .card img {
+      width: 64px;
+      height: 96px;
+      object-fit: cover;
+      border-radius: 8px;
+      flex-shrink: 0;
+      border: 1px solid #e5e7eb;
+      background: #e5e7eb;
+    }
+
+    .card-content {
+      flex: 1;
+      position: relative;
+      z-index: 1;
+      font-size: 0.84rem;
+    }
+
+    .card-title {
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: #eef2ff;
+      border: 1px solid #e5e7eb;
+      color: #4b5563;
+      gap: 4px;
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #4b5563;
+    }
+
+    .avaliacao-text {
+      margin-top: 4px;
+      font-size: 0.78rem;
+      color: #b45309;
+    }
+
+    .serie-resumo {
+      margin-top: 3px;
+      font-size: 0.78rem;
+      color: var(--text-soft);
+    }
+    .serie-resumo strong { color: var(--accent); }
+
+    .meta-line {
+      margin-top: 2px;
+      font-size: 0.78rem;
+      color: var(--text-soft);
+    }
+
+    .status-label {
+      margin-top: 6px;
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-soft);
+    }
+
+    .status-select {
+      margin-top: 2px;
+      width: 100%;
+    }
+
+    .card-actions {
+      margin-top: 6px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .stars-display {
+      font-size: 0.9rem;
+      color: #b45309;
+    }
+
+    .rating-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    /* EPISÓDIOS VIEW */
+    #episodios-view { display: none; }
+
+    .top-bar-episodios {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .episodios-header {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      margin-bottom: 12px;
+      background: #f9fafb;
+      padding: 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid #e5e7eb;
+    }
+
+    .episodios-header img {
+      width: 90px;
+      height: 135px;
+      border-radius: 10px;
+      object-fit: cover;
+      border: 1px solid #e5e7eb;
+      background: #e5e7eb;
+    }
+
+    .episodios-header-info { flex: 1; }
+    .episodios-header-titulo { font-size: 1.05rem; font-weight: 600; margin-bottom: 4px; }
+
+    .episodios-meta { font-size: 0.8rem; color: var(--text-soft); }
+
+    .episodios-resumo {
+      font-size: 0.86rem;
+      color: var(--text-soft);
+      margin-top: 4px;
+    }
+    .episodios-resumo strong { color: var(--accent); }
+
+    .episodios-list {
+      background: #f9fafb;
+      padding: 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid #e5e7eb;
+      font-size: 0.85rem;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+
+    .episodios-list-vazia { color: var(--text-soft); font-size: 0.82rem; }
+
+    .temporada-bloco {
+      margin-bottom: 10px;
+      border-bottom: 1px dashed #e5e7eb;
+      padding-bottom: 6px;
+    }
+
+    .temporada-titulo {
+      font-weight: 600;
+      margin-bottom: 5px;
+      font-size: 0.86rem;
+      color: #111827;
+    }
+
+    .episodios-status-header {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-soft);
+      margin: 4px 0 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .episodio-item {
+      margin-bottom: 5px;
+    }
+
+    .episodio-topline {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .episodio-info {
+      max-width: 70%;
+      font-size: 0.83rem;
+    }
+
+    .episodio-resumo {
+      margin-top: 2px;
+      font-size: 0.78rem;
+      color: var(--text-soft);
+    }
+
+    .episodio-acao {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .episodios-form { margin-bottom: 12px; }
+
+    .episodios-import {
+      margin-bottom: 12px;
+      background: #f9fafb;
+      border-radius: var(--radius-md);
+      border: 1px dashed #d1d5db;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px 12px;
+      align-items: end;
+      font-size: 0.78rem;
+      color: var(--text-soft);
+    }
+
+    .episodios-import small {
+      font-size: 0.74rem;
+      color: var(--text-soft);
+    }
+
+    /* TOP LISTAS */
+    .tops-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .top-column {
+      background: #f9fafb;
+      border-radius: var(--radius-md);
+      border: 1px solid #e5e7eb;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .top-column-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-soft);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+
+    .top10-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
+      font-size: 0.84rem;
+    }
+
+    .top10-row-rank {
+      font-weight: 700;
+      color: #4b5563;
+      margin-right: 6px;
+      min-width: 26px;
+      text-align: center;
+    }
+
+    .top10-row-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .top10-row-title { font-weight: 600; }
+
+    .top10-row-meta { font-size: 0.78rem; color: var(--text-soft); }
+
+    .top10-row-rating {
+      font-size: 0.8rem;
+      color: #b45309;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 1px;
+      min-width: 60px;
+    }
+
+    /* COLEÇÕES DE FRANQUIAS */
+    .colecoes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .colecao-card {
+      background: #f9fafb;
+      border-radius: var(--radius-md);
+      border: 1px solid #e5e7eb;
+      padding: 8px 10px;
+      font-size: 0.84rem;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .colecao-title {
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .colecao-meta {
+      font-size: 0.78rem;
+      color: var(--text-soft);
+    }
+
+    .colecao-subtitle {
+      margin-top: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-soft);
+    }
+
+    .colecao-listagem {
+      margin-top: 2px;
+      font-size: 0.8rem;
+      color: var(--text-soft);
+    }
+
+    .colecao-posters {
+      margin-top: 6px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .colecao-poster-img {
+      width: 52px;
+      height: 78px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 1px solid #e5e7eb;
+      background: #e5e7eb;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    .colecao-poster-img:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+    }
+
+    @media (max-width: 768px) {
+      .topbar-inner { flex-direction: column; align-items: flex-start; }
+      .episodios-header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="logo-area">
+          <div class="logo-circle">MV</div>
+          <div class="logo-text">
+            <span class="logo-text-title">MediaVault</span>
+            <span class="logo-text-sub">Seu hub pessoal de filmes & séries</span>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <div class="chip">
+            <span class="chip-dot"></span>
+            <span>Supabase conectado</span>
+          </div>
+          <button id="btn-filtro-assistindo" type="button" class="btn btn-outline">
+            <span>🎬</span><span>Ir para aba ASSISTINDO</span>
+          </button>
+          <button id="btn-gerir-colecao" type="button" class="btn btn-outline">
+            <span>📚</span><span>Gerir Coleção</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="main-inner">
+        <div id="message"></div>
+
+        <!-- ============ VIEW PRINCIPAL: LISTAGEM/FILTROS ============ -->
+        <div id="main-view" class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="icon">📋</span>
+              <span>Minha lista – Filmes & Séries</span>
+            </div>
+          </div>
+
+          <!-- FILTROS -->
+          <div class="filters-row">
+            <div class="form-field">
+              <label for="filtro-nome">Buscar por nome</label>
+              <input id="filtro-nome" placeholder="Digite parte do nome" />
+            </div>
+            <div class="form-field">
+              <label for="filtro-diretor">Diretor</label>
+              <input id="filtro-diretor" placeholder="Nome do diretor" />
+            </div>
+            <div class="form-field">
+              <label for="filtro-nota-min">Mínimo de estrelas</label>
+              <select id="filtro-nota-min">
+                <option value="">Qualquer</option>
+                <option value="1">1 estrela</option>
+                <option value="2">2 estrelas</option>
+                <option value="3">3 estrelas</option>
+                <option value="4">4 estrelas</option>
+                <option value="5">5 estrelas</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="filtro-streaming">Streaming</label>
+              <select id="filtro-streaming">
+                <option value="">Todos</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="filtro-ano">Ano</label>
+              <select id="filtro-ano">
+                <option value="">Todos</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="filtro-genero">Gênero</label>
+              <select id="filtro-genero">
+                <option value="">Todos</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="filtro-franquia">Franquia</label>
+              <select id="filtro-franquia">
+                <option value="">Todas</option>
+              </select>
+            </div>
+            <div class="form-field" style="align-items:flex-start;">
+              <button id="btn-limpar-filtros" type="button" class="btn btn-outline">
+                <span>🧹</span><span>Limpar filtros</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- ABAS DE STATUS -->
+          <div class="tabs-bar" id="tabs-bar">
+            <button class="tab-status tab-status-active" data-status="">
+              <span class="tab-dot"></span>
+              <span>Todos</span>
+              <span class="tab-count" id="tab-count-todos"></span>
+            </button>
+            <button class="tab-status" data-status="ASSISTINDO">
+              <span class="tab-dot"></span>
+              <span>Assistindo</span>
+              <span class="tab-count" id="tab-count-assistindo"></span>
+            </button>
+            <button class="tab-status" data-status="ASSISTIDOS">
+              <span class="tab-dot"></span>
+              <span>Assistidos</span>
+              <span class="tab-count" id="tab-count-assistidos"></span>
+            </button>
+            <button class="tab-status" data-status="NAO_COMECEI">
+              <span class="tab-dot"></span>
+              <span>Ainda não comecei</span>
+              <span class="tab-count" id="tab-count-nao-comecei"></span>
+            </button>
+          </div>
+
+          <div id="lista-midias" class="cards-container"></div>
+        </div>
+
+        <!-- TOP LISTAS -->
+        <div id="tops-panel" class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="icon">⭐</span>
+              <span>Destaques da coleção</span>
+            </div>
+          </div>
+          <div class="tops-grid">
+            <div class="top-column">
+              <div class="top-column-title">⬆ Top 10 mais bem avaliados</div>
+              <div id="top10-best" class="cards-container" style="margin-top:4px;"></div>
+            </div>
+            <div class="top-column">
+              <div class="top-column-title">⬇ Top 10 menos avaliados</div>
+              <div id="top10-worst" class="cards-container" style="margin-top:4px;"></div>
+            </div>
+            <div class="top-column">
+              <div class="top-column-title">🕒 Últimos 10 adicionados</div>
+              <div id="top10-last" class="cards-container" style="margin-top:4px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- COLEÇÕES DE FRANQUIAS -->
+        <div id="colecoes-panel" class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="icon">🎞️</span>
+              <span>Coleções de franquias</span>
+            </div>
+          </div>
+          <div id="colecoes-list" class="colecoes-grid"></div>
+        </div>
+
+        <!-- ============ VIEW GERIR COLEÇÃO (CADASTRO) ============ -->
+        <div id="gerir-view" class="panel" style="display:none;">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="icon">⚙️</span>
+              <span>Gerir coleção – Cadastro de mídias</span>
+            </div>
+            <button id="btn-voltar-lista" type="button" class="btn btn-outline">
+              <span>←</span><span>Voltar para lista</span>
+            </button>
+          </div>
+
+          <form id="midia-form">
+            <div class="form-field">
+              <label for="nome">Nome</label>
+              <input id="nome" placeholder="Ex: Matrix, Lost, Vingadores..." required />
+            </div>
+            <div class="form-field">
+              <label for="diretor">Diretor(es)</label>
+              <input id="diretor" placeholder="Ex: Lana Wachowski, Lilly Wachowski" />
+            </div>
+            <div class="form-field">
+              <label for="genero">Gênero</label>
+              <input id="genero" placeholder="Ex: Ação, Ficção científica" />
+            </div>
+            <div class="form-field">
+              <label for="data-lancamento">Data de lançamento</label>
+              <input id="data-lancamento" type="date" />
+            </div>
+            <div class="form-field">
+              <label for="ano">Ano (automático)</label>
+              <input id="ano" type="number" min="1900" max="2100" placeholder="Ex: 1999" readonly />
+            </div>
+            <div class="form-field">
+              <label for="streaming">Streaming</label>
+              <input id="streaming" placeholder="Netflix, Prime, Disney+, etc." />
+            </div>
+            <div class="form-field">
+              <label for="tipo">Filme ou Série?</label>
+              <select id="tipo" required>
+                <option value="">Selecione</option>
+                <option value="FILME">Filme</option>
+                <option value="SERIE">Série</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="franquia">Franquia (coleção)</label>
+              <input id="franquia" placeholder="Ex: Matrix, MCU, Star Wars..." />
+            </div>
+            <div class="form-field">
+              <label for="status">Status</label>
+              <select id="status" required>
+                <option value="ASSISTINDO">ASSISTINDO</option>
+                <option value="ASSISTIDOS">ASSISTIDOS</option>
+                <option value="NAO_COMECEI">AINDA NÃO COMECEI</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>Avaliação geral (0 a 5 estrelas)</label>
+              <div class="rating-wrapper">
+                <input
+                  id="avaliacao"
+                  type="number"
+                  min="0"
+                  max="5"
+                  step="0.5"
+                  placeholder="Ex: 3.5"
+                />
+                <div id="avaliacao-stars-display" class="stars-display"></div>
+              </div>
+            </div>
+            <div class="form-field">
+              <label for="imagem-url">Link da imagem (poster/capa)</label>
+              <input id="imagem-url" type="url" placeholder="https://exemplo.com/poster.jpg" />
+            </div>
+            <div class="form-field" style="align-items:flex-start;">
+              <button type="submit" id="btn-salvar" class="btn btn-primary">
+                <span>💾</span><span>Salvar</span>
+              </button>
+              <button
+                type="button"
+                id="btn-cancelar-edicao"
+                class="btn btn-outline"
+                style="display:none; margin-left:6px;"
+              >
+                <span>✖</span><span>Cancelar edição</span>
+              </button>
+            </div>
+          </form>
+
+          <!-- IMPORT/EXPORT MÍDIAS -->
+          <div class="midias-import">
+            <div class="form-field">
+              <label for="midia-import-file">Importar mídias (JSON)</label>
+              <input id="midia-import-file" type="file" accept="application/json" />
+              <small>
+                Campos: nome, diretor, genero, data_lancamento, ano (opcional),
+                streaming, tipo, status, avaliacao (0–5, pode 3.5), imagem_url, franquia.
+              </small>
+            </div>
+            <div class="form-field" style="align-items:flex-start;">
+              <button type="button" id="btn-import-midia" class="btn btn-outline">
+                <span>📥</span><span>Importar JSON</span>
+              </button>
+              <button type="button" id="btn-export-midias-json" class="btn btn-outline" style="margin-top:6px;">
+                <span>📤</span><span>Exportar atuais</span>
+              </button>
+              <button type="button" id="btn-export-modelo-midia" class="btn btn-outline" style="margin-top:6px;">
+                <span>📄</span><span>Baixar modelo JSON</span>
+              </button>
+            </div>
+            <div>
+              <small>Exemplo:<br>
+                { "nome": "Matrix", "diretor": "Lana Wachowski, Lilly Wachowski", "genero": "Ação/Ficção científica",
+                "data_lancamento": "1999-03-31", "streaming": "Max", "tipo": "FILME", "status": "ASSISTIDOS",
+                "avaliacao": 4.5, "imagem_url": "https://...", "franquia": "Matrix" }
+              </small>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ VIEW EPISÓDIOS ============ -->
+        <div id="episodios-view" class="panel">
+          <div class="top-bar-episodios">
+            <button id="btn-voltar" type="button" class="btn btn-outline">
+              <span>←</span><span>Voltar para lista</span>
+            </button>
+            <div id="episodios-titulo-bar" style="font-size:0.9rem; color:var(--text-soft);"></div>
+          </div>
+
+          <div id="episodios-header" class="episodios-header"></div>
+
+          <form id="episodio-form" class="episodios-form">
+            <div class="form-field">
+              <label for="ep-temp">Temporada</label>
+              <input id="ep-temp" type="number" min="1" placeholder="Ex: 1" />
+            </div>
+            <div class="form-field">
+              <label for="ep-num">Episódio</label>
+              <input id="ep-num" type="number" min="1" placeholder="Ex: 3" />
+            </div>
+            <div class="form-field">
+              <label for="ep-titulo">Título (opcional)</label>
+              <input id="ep-titulo" placeholder="Ex: Pilot" />
+            </div>
+            <div class="form-field">
+              <label for="ep-resumo">Resumo do episódio</label>
+              <textarea
+                id="ep-resumo"
+                rows="2"
+                placeholder="Resumo breve do episódio"
+              ></textarea>
+            </div>
+            <div class="form-field">
+              <label for="ep-status">Status do episódio</label>
+              <select id="ep-status">
+                <option value="ASSISTINDO">ASSISTINDO</option>
+                <option value="ASSISTIDOS">ASSISTIDOS</option>
+                <option value="NAO_COMECEI">AINDA NÃO COMECEI</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>Avaliação ep. (0 a 5 estrelas)</label>
+              <div class="rating-wrapper">
+                <input
+                  id="ep-avaliacao"
+                  type="number"
+                  min="0"
+                  max="5"
+                  step="0.5"
+                  placeholder="Ex: 4.5"
+                />
+                <div id="ep-avaliacao-stars-display" class="stars-display"></div>
+              </div>
+            </div>
+            <div class="form-field" style="align-items:flex-start;">
+              <button type="submit" id="btn-salvar-episodio" class="btn btn-primary">
+                <span>➕</span><span>Adicionar episódio</span>
+              </button>
+              <button
+                type="button"
+                id="btn-cancelar-ep"
+                class="btn btn-outline"
+                style="display:none; margin-left:6px;"
+              >
+                <span>✖</span><span>Cancelar edição ep.</span>
+              </button>
+            </div>
+          </form>
+
+          <!-- IMPORT / EXPORT JSON EPISÓDIOS -->
+          <div class="episodios-import">
+            <div class="form-field">
+              <label for="ep-import-file">Importar episódios (JSON)</label>
+              <input id="ep-import-file" type="file" accept="application/json" />
+              <small>Campos: temporada, numero, titulo, resumo, status, avaliacao (0–5).</small>
+            </div>
+            <div class="form-field" style="align-items:flex-start;">
+              <button type="button" id="btn-import-ep" class="btn btn-outline">
+                <span>📥</span><span>Importar JSON</span>
+              </button>
+              <button type="button" id="btn-export-modelo-ep" class="btn btn-outline" style="margin-top:6px;">
+                <span>📄</span><span>Baixar modelo JSON</span>
+              </button>
+            </div>
+            <div>
+              <small>Exemplo:<br>
+                { "temporada": 1, "numero": 1, "titulo": "Pilot", "resumo": "Queda do avião", "status": "ASSISTIDOS", "avaliacao": 4.5 }
+              </small>
+            </div>
+          </div>
+
+          <div class="episodios-list" id="episodios-list"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // ======= SUPABASE CONFIG =======
+    const SUPABASE_URL = "https://koytoiwfvwzjvgcqhlal.supabase.co";
+    const SUPABASE_ANON_KEY =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtveXRvaXdmdnd6anZnY3FobGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxNDExNzAsImV4cCI6MjA3OTcxNzE3MH0.mrMRUGJFqzOBjj7M4giHcWr5qsqUn_0woVMFikDxrjM";
+
+    const { createClient } = supabase;
+    const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const TABLE_MIDIAS = "midias";
+    const TABLE_EPISODIOS = "episodios";
+
+    // ELEMENTOS PRINCIPAIS
+    const mainView = document.getElementById("main-view");
+    const topsPanel = document.getElementById("tops-panel");
+    const colecoesPanel = document.getElementById("colecoes-panel");
+    const colecoesList = document.getElementById("colecoes-list");
+    const gerirView = document.getElementById("gerir-view");
+    const episodiosView = document.getElementById("episodios-view");
+    const messageDiv = document.getElementById("message");
+
+    const form = document.getElementById("midia-form");
+    const nomeInput = document.getElementById("nome");
+    const diretorInput = document.getElementById("diretor");
+    const generoInput = document.getElementById("genero");
+    const dataLancInput = document.getElementById("data-lancamento");
+    const anoInput = document.getElementById("ano");
+    const streamingInput = document.getElementById("streaming");
+    const tipoSelect = document.getElementById("tipo");
+    const franquiaInput = document.getElementById("franquia");
+    const statusSelect = document.getElementById("status");
+    const avaliacaoInput = document.getElementById("avaliacao");
+    const avaliacaoStarsDisplay = document.getElementById("avaliacao-stars-display");
+    const imagemUrlInput = document.getElementById("imagem-url");
+    const btnSalvar = document.getElementById("btn-salvar");
+    const btnCancelarEdicao = document.getElementById("btn-cancelar-edicao");
+
+    const filtroNome = document.getElementById("filtro-nome");
+    const filtroDiretor = document.getElementById("filtro-diretor");
+    const filtroNotaMin = document.getElementById("filtro-nota-min");
+    const filtroStreaming = document.getElementById("filtro-streaming");
+    const filtroAno = document.getElementById("filtro-ano");
+    const filtroGenero = document.getElementById("filtro-genero");
+    const filtroFranquia = document.getElementById("filtro-franquia");
+    const btnLimparFiltros = document.getElementById("btn-limpar-filtros");
+    const btnFiltroAssistindo = document.getElementById("btn-filtro-assistindo");
+
+    const btnGerirColecao = document.getElementById("btn-gerir-colecao");
+    const btnVoltarLista = document.getElementById("btn-voltar-lista");
+
+    const listaMidias = document.getElementById("lista-midias");
+
+    const tabTodos = document.getElementById("tab-count-todos");
+    const tabAss = document.getElementById("tab-count-assistindo");
+    const tabAssd = document.getElementById("tab-count-assistidos");
+    const tabNao = document.getElementById("tab-count-nao-comecei");
+    const tabsBar = document.getElementById("tabs-bar");
+
+    // IMPORT/EXPORT MÍDIAS
+    const midiaImportFile = document.getElementById("midia-import-file");
+    const btnImportMidia = document.getElementById("btn-import-midia");
+    const btnExportModeloMidia = document.getElementById("btn-export-modelo-midia");
+    const btnExportMidiasJSON = document.getElementById("btn-export-midias-json");
+
+    // TOP LISTS
+    const top10BestList = document.getElementById("top10-best");
+    const top10WorstList = document.getElementById("top10-worst");
+    const top10LastList = document.getElementById("top10-last");
+
+    // EPISÓDIOS VIEW
+    const btnVoltar = document.getElementById("btn-voltar");
+    const episodiosHeader = document.getElementById("episodios-header");
+    const episodiosTituloBar = document.getElementById("episodios-titulo-bar");
+    const episodioForm = document.getElementById("episodio-form");
+    const epTempInput = document.getElementById("ep-temp");
+    const epNumInput = document.getElementById("ep-num");
+    const epTituloInput = document.getElementById("ep-titulo");
+    const epResumoInput = document.getElementById("ep-resumo");
+    const epStatusSelect = document.getElementById("ep-status");
+    const epAvalInput = document.getElementById("ep-avaliacao");
+    const epAvalStarsDisplay = document.getElementById("ep-avaliacao-stars-display");
+    const btnSalvarEp = document.getElementById("btn-salvar-episodio");
+    const btnCancelarEp = document.getElementById("btn-cancelar-ep");
+    const episodiosList = document.getElementById("episodios-list");
+
+    const epImportFile = document.getElementById("ep-import-file");
+    const btnImportEp = document.getElementById("btn-import-ep");
+    const btnExportModeloEp = document.getElementById("btn-export-modelo-ep");
+
+    // ESTADO
+    let todasMidias = [];
+    let episodiosPorMidia = {};
+    let midiaEmEdicao = null;
+    let midiaAtualEpisodios = null;
+    let episodioEmEdicao = null;
+    let abaStatus = ""; // "", "ASSISTINDO", "ASSISTIDOS", "NAO_COMECEI"
+
+    // ======= UTIL =======
+    function showMessage(text, type = "success", timeout = 3500) {
+      if (!text) {
+        messageDiv.textContent = "";
+        messageDiv.className = "";
+        return;
+      }
+      messageDiv.textContent = text;
+      messageDiv.className = type === "error" ? "error" : "success";
+      if (timeout) {
+        setTimeout(() => {
+          messageDiv.textContent = "";
+          messageDiv.className = "";
+        }, timeout);
+      }
+    }
+
+    function mapStatusToLabel(status) {
+      if (status === "NAO_COMECEI") return "AINDA NÃO COMECEI";
+      return status;
+    }
+
+    function sanitizeRating(raw) {
+      if (raw === null || raw === undefined || raw === "") return null;
+      let v = Number(raw);
+      if (Number.isNaN(v)) return null;
+      if (v < 0) v = 0;
+      if (v > 5) v = 5;
+      v = Math.round(v * 2) / 2;
+      if (v === 0) return null;
+      return v;
+    }
+
+    function renderStars(raw) {
+      const v = sanitizeRating(raw);
+      if (v === null) return "";
+      const full = Math.floor(v);
+      const half = v - full >= 0.5 ? 1 : 0;
+      let s = "★".repeat(full);
+      if (half) s += "½";
+      const empty = 5 - full - half;
+      s += "☆".repeat(empty);
+      return s;
+    }
+
+    function formatRating(raw) {
+      const v = sanitizeRating(raw);
+      if (v === null) return "";
+      return v % 1 === 0 ? v.toString() : v.toFixed(1);
+    }
+
+    function updateMidiaStarsDisplay() {
+      avaliacaoStarsDisplay.textContent = renderStars(avaliacaoInput.value);
+    }
+
+    function updateEpStarsDisplay() {
+      epAvalStarsDisplay.textContent = renderStars(epAvalInput.value);
+    }
+
+    avaliacaoInput.addEventListener("input", updateMidiaStarsDisplay);
+    epAvalInput.addEventListener("input", updateEpStarsDisplay);
+
+    // Ano automático a partir da data de lançamento
+    dataLancInput.addEventListener("change", () => {
+      const val = dataLancInput.value;
+      if (!val) {
+        anoInput.value = "";
+        return;
+      }
+      const dt = new Date(val);
+      const y = dt.getFullYear();
+      if (!Number.isNaN(y)) {
+        anoInput.value = y;
+      }
+    });
+
+    function clearForm() {
+      form.reset();
+      statusSelect.value = "ASSISTINDO";
+      imagemUrlInput.value = "";
+      avaliacaoInput.value = "";
+      anoInput.value = "";
+      updateMidiaStarsDisplay();
+    }
+
+    function entrarModoEdicao(midia) {
+      midiaEmEdicao = midia;
+      nomeInput.value = midia.nome || "";
+      diretorInput.value = midia.diretor || "";
+      generoInput.value = midia.genero || "";
+      dataLancInput.value = midia.data_lancamento || "";
+      anoInput.value = midia.ano || "";
+      streamingInput.value = midia.streaming || "";
+      tipoSelect.value = midia.tipo || "";
+      franquiaInput.value = midia.franquia || "";
+      statusSelect.value = midia.status || "ASSISTINDO";
+      avaliacaoInput.value =
+        midia.avaliacao !== null && midia.avaliacao !== undefined ? midia.avaliacao : "";
+      updateMidiaStarsDisplay();
+      imagemUrlInput.value = midia.imagem_url || "";
+      btnSalvar.textContent = "Atualizar";
+      btnCancelarEdicao.style.display = "inline-flex";
+      mostrarGerirView();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function sairModoEdicao() {
+      midiaEmEdicao = null;
+      btnSalvar.textContent = "Salvar";
+      btnCancelarEdicao.style.display = "none";
+      clearForm();
+    }
+
+    btnCancelarEdicao.addEventListener("click", sairModoEdicao);
+
+    function entrarModoEdicaoEp(ep) {
+      episodioEmEdicao = ep;
+      epTempInput.value = ep.temporada;
+      epNumInput.value = ep.numero;
+      epTituloInput.value = ep.titulo || "";
+      epResumoInput.value = ep.resumo || "";
+      epStatusSelect.value = ep.status || "ASSISTINDO";
+      epAvalInput.value =
+        ep.avaliacao !== null && ep.avaliacao !== undefined ? ep.avaliacao : "";
+      updateEpStarsDisplay();
+      btnSalvarEp.innerHTML = "<span>💾</span><span>Salvar alterações</span>";
+      btnCancelarEp.style.display = "inline-flex";
+    }
+
+    function sairModoEdicaoEp() {
+      episodioEmEdicao = null;
+      epTempInput.value = "";
+      epNumInput.value = "";
+      epTituloInput.value = "";
+      epResumoInput.value = "";
+      epAvalInput.value = "";
+      epStatusSelect.value = midiaAtualEpisodios
+        ? midiaAtualEpisodios.status || "ASSISTINDO"
+        : "ASSISTINDO";
+      updateEpStarsDisplay();
+      btnSalvarEp.innerHTML = "<span>➕</span><span>Adicionar episódio</span>";
+      btnCancelarEp.style.display = "none";
+    }
+
+    btnCancelarEp.addEventListener("click", sairModoEdicaoEp);
+
+    // ======= SALVAR MÍDIA =======
+    async function salvarMidia(e) {
+      e.preventDefault();
+      try {
+        btnSalvar.disabled = true;
+        const nome = nomeInput.value.trim();
+        const diretor = diretorInput.value.trim() || null;
+        const genero = generoInput.value.trim() || null;
+        const data_lancamento = dataLancInput.value || null;
+        let ano = null;
+        if (data_lancamento) {
+          const dt = new Date(data_lancamento);
+          const y = dt.getFullYear();
+          if (!Number.isNaN(y)) ano = y;
+        } else if (anoInput.value) {
+          ano = parseInt(anoInput.value);
+        }
+        const streaming = streamingInput.value.trim() || null;
+        const tipo = tipoSelect.value;
+        const franquia = franquiaInput.value.trim() || null;
+        const status = statusSelect.value;
+        const avaliacao = sanitizeRating(avaliacaoInput.value);
+        const imagem_url = imagemUrlInput.value.trim() || null;
+
+        if (!nome || !tipo || !status) {
+          showMessage("Preencha pelo menos Nome, Tipo e Status.", "error");
+          return;
+        }
+
+        const payload = {
+          nome,
+          diretor,
+          genero,
+          data_lancamento,
+          ano,
+          streaming,
+          tipo,
+          franquia,
+          status,
+          avaliacao,
+          imagem_url,
+        };
+
+        if (!midiaEmEdicao) {
+          const { error } = await client.from(TABLE_MIDIAS).insert(payload);
+          if (error) {
+            console.error(error);
+            showMessage("Erro ao salvar registro.", "error");
+          } else {
+            showMessage("Registro salvo com sucesso!");
+            clearForm();
+            await carregarTudo();
+          }
+        } else {
+          const { error } = await client
+            .from(TABLE_MIDIAS)
+            .update(payload)
+            .eq("id", midiaEmEdicao.id);
+          if (error) {
+            console.error(error);
+            showMessage("Erro ao atualizar registro.", "error");
+          } else {
+            showMessage("Registro atualizado com sucesso!");
+            sairModoEdicao();
+            await carregarTudo();
+          }
+        }
+      } catch (err) {
+        console.error(err);
+        showMessage(err.message || "Erro ao salvar registro.", "error");
+      } finally {
+        btnSalvar.disabled = false;
+      }
+    }
+
+    form.addEventListener("submit", salvarMidia);
+
+    // ======= SALVAR / EDITAR EPISÓDIO =======
+    async function salvarEpisodio(e) {
+      e.preventDefault();
+      if (!midiaAtualEpisodios) {
+        showMessage("Nenhuma série selecionada.", "error");
+        return;
+      }
+      const midia = midiaAtualEpisodios;
+      const temporada = epTempInput.value ? parseInt(epTempInput.value) : null;
+      const numero = epNumInput.value ? parseInt(epNumInput.value) : null;
+      const titulo = epTituloInput.value.trim() || null;
+      const resumo = epResumoInput.value.trim() || null;
+      const status = epStatusSelect.value;
+      const avaliacao = sanitizeRating(epAvalInput.value);
+
+      if (!temporada || !numero || !status) {
+        showMessage("Informe temporada, episódio e status.", "error");
+        return;
+      }
+
+      if (!episodioEmEdicao) {
+        const { error } = await client.from(TABLE_EPISODIOS).insert({
+          midia_id: midia.id,
+          temporada,
+          numero,
+          titulo,
+          resumo,
+          status,
+          avaliacao,
+        });
+
+        if (error) {
+          console.error(error);
+          showMessage("Erro ao salvar episódio.", "error");
+        } else {
+          showMessage("Episódio salvo com sucesso!");
+          sairModoEdicaoEp();
+          await carregarTudo();
+        }
+      } else {
+        const { error } = await client
+          .from(TABLE_EPISODIOS)
+          .update({
+            temporada,
+            numero,
+            titulo,
+            resumo,
+            status,
+            avaliacao,
+          })
+          .eq("id", episodioEmEdicao.id);
+
+        if (error) {
+          console.error(error);
+          showMessage("Erro ao atualizar episódio.", "error");
+        } else {
+          showMessage("Episódio atualizado com sucesso!");
+          sairModoEdicaoEp();
+          await carregarTudo();
+        }
+      }
+    }
+
+    episodioForm.addEventListener("submit", salvarEpisodio);
+
+    async function excluirEpisodio(ep) {
+      if (
+        !confirm(
+          `Excluir T${String(ep.temporada).padStart(2, "0")}E${String(ep.numero).padStart(
+            2,
+            "0"
+          )}?`
+        )
+      )
+        return;
+
+      const { error } = await client.from(TABLE_EPISODIOS).delete().eq("id", ep.id);
+
+      if (error) {
+        console.error(error);
+        showMessage("Erro ao excluir episódio.", "error");
+      } else {
+        showMessage("Episódio excluído.");
+        if (episodioEmEdicao && episodioEmEdicao.id === ep.id) {
+          sairModoEdicaoEp();
+        }
+        await carregarTudo();
+      }
+    }
+
+    // ======= FILE READER GENÉRICO =======
+    function readFileAsText(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error("Erro ao ler arquivo."));
+        reader.onload = () => resolve(reader.result);
+        reader.readAsText(file);
+      });
+    }
+
+    // ======= IMPORT/EXPORT MODELO EPISÓDIOS =======
+    btnExportModeloEp.addEventListener("click", () => {
+      if (!midiaAtualEpisodios) {
+        showMessage("Abra uma série primeiro (Ver episódios).", "error");
+        return;
+      }
+
+      const modelo = [
+        {
+          temporada: 1,
+          numero: 1,
+          titulo: "Pilot",
+          resumo: "O voo 815 cai na ilha.",
+          status: "ASSISTIDOS",
+          avaliacao: 4.5,
+        },
+        {
+          temporada: 1,
+          numero: 2,
+          titulo: "Segundo episódio",
+          resumo: "Continuam explorando a ilha.",
+          status: "ASSISTINDO",
+          avaliacao: null,
+        },
+      ];
+
+      const blob = new Blob([JSON.stringify(modelo, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const nomeSafe =
+        (midiaAtualEpisodios.nome || "serie").toLowerCase().replace(/[^a-z0-9]+/g, "_");
+      a.download = `modelo_episodios_${nomeSafe}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    btnImportEp.addEventListener("click", async () => {
+      try {
+        if (!midiaAtualEpisodios) {
+          showMessage("Abra uma série primeiro (Ver episódios).", "error");
+          return;
+        }
+        const file = epImportFile.files[0];
+        if (!file) {
+          showMessage("Selecione um arquivo JSON para importar episódios.", "error");
+          return;
+        }
+
+        const text = await readFileAsText(file);
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (err) {
+          showMessage("JSON inválido.", "error");
+          return;
+        }
+
+        if (!Array.isArray(data)) {
+          showMessage("O JSON deve ser um array de episódios.", "error");
+          return;
+        }
+
+        const existentes = episodiosPorMidia[midiaAtualEpisodios.id] || [];
+        const keyExistentes = new Set(
+          existentes.map((e) => `${e.temporada}-${e.numero}`)
+        );
+
+        const toInsert = [];
+        let ignorados = 0;
+
+        for (const item of data) {
+          const temporada = parseInt(item.temporada);
+          const numero = parseInt(item.numero);
+          const titulo =
+            item.titulo && String(item.titulo).trim()
+              ? String(item.titulo).trim()
+              : null;
+          const resumo =
+            item.resumo && String(item.resumo).trim()
+              ? String(item.resumo).trim()
+              : null;
+          const status = (item.status || "NAO_COMECEI").toUpperCase();
+          const avaliacao = sanitizeRating(item.avaliacao);
+
+          if (!temporada || !numero) {
+            ignorados++;
+            continue;
+          }
+
+          if (
+            status !== "ASSISTINDO" &&
+            status !== "ASSISTIDOS" &&
+            status !== "NAO_COMECEI"
+          ) {
+            ignorados++;
+            continue;
+          }
+
+          const key = `${temporada}-${numero}`;
+          if (keyExistentes.has(key)) {
+            ignorados++;
+            continue;
+          }
+
+          toInsert.push({
+            midia_id: midiaAtualEpisodios.id,
+            temporada,
+            numero,
+            titulo,
+            resumo,
+            status,
+            avaliacao,
+          });
+        }
+
+        if (!toInsert.length) {
+          showMessage(
+            "Nenhum episódio novo para importar (todos existentes ou inválidos).",
+            "error"
+          );
+          return;
+        }
+
+        const { error } = await client.from(TABLE_EPISODIOS).insert(toInsert);
+        if (error) {
+          console.error(error);
+          showMessage("Erro ao importar episódios.", "error");
+        } else {
+          const msg =
+            `Importados ${toInsert.length} episódio(s)` +
+            (ignorados ? `, ${ignorados} ignorado(s).` : ".");
+          showMessage(msg);
+          epImportFile.value = "";
+          await carregarTudo();
+        }
+      } catch (err) {
+        console.error(err);
+        showMessage("Erro ao importar episódios.", "error");
+      }
+    });
+
+    // ======= IMPORT/EXPORT MÍDIAS =======
+    btnExportModeloMidia.addEventListener("click", () => {
+      const modelo = [
+        {
+          nome: "Matrix",
+          diretor: "Lana Wachowski, Lilly Wachowski",
+          genero: "Ação/Ficção científica",
+          data_lancamento: "1999-03-31",
+          ano: 1999,
+          streaming: "Max",
+          tipo: "FILME",
+          status: "ASSISTIDOS",
+          avaliacao: 4.5,
+          imagem_url: "https://exemplo.com/poster_matrix.jpg",
+          franquia: "Matrix",
+        },
+        {
+          nome: "Matrix Reloaded",
+          diretor: "Lana Wachowski, Lilly Wachowski",
+          genero: "Ação/Ficção científica",
+          data_lancamento: "2003-05-15",
+          ano: 2003,
+          streaming: "Max",
+          tipo: "FILME",
+          status: "ASSISTIDOS",
+          avaliacao: 4,
+          imagem_url: "https://exemplo.com/poster_reloaded.jpg",
+          franquia: "Matrix",
+        },
+      ];
+
+      const blob = new Blob([JSON.stringify(modelo, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "modelo_midias.json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    btnExportMidiasJSON.addEventListener("click", () => {
+      if (!todasMidias.length) {
+        showMessage("Não há mídias cadastradas para exportar.", "error");
+        return;
+      }
+      const exportData = todasMidias.map((m) => ({
+        nome: m.nome || null,
+        diretor: m.diretor || null,
+        genero: m.genero || null,
+        data_lancamento: m.data_lancamento || null,
+        ano: m.ano || null,
+        streaming: m.streaming || null,
+        tipo: m.tipo || null,
+        status: m.status || null,
+        avaliacao:
+          m.avaliacao !== null && m.avaliacao !== undefined
+            ? sanitizeRating(m.avaliacao)
+            : null,
+        imagem_url: m.imagem_url || null,
+        franquia: m.franquia || null,
+      }));
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "midias_exportadas.json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    btnImportMidia.addEventListener("click", async () => {
+      try {
+        const file = midiaImportFile.files[0];
+        if (!file) {
+          showMessage("Selecione um arquivo JSON para importar mídias.", "error");
+          return;
+        }
+
+        const text = await readFileAsText(file);
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (err) {
+          showMessage("JSON inválido.", "error");
+          return;
+        }
+
+        if (!Array.isArray(data)) {
+          showMessage("O JSON deve ser um array de mídias.", "error");
+          return;
+        }
+
+        const existentesKeys = new Set(
+          todasMidias.map((m) =>
+            `${(m.nome || "").toLowerCase()}|${m.tipo || ""}|${m.ano || ""}`
+          )
+        );
+
+        const toInsert = [];
+        let ignorados = 0;
+
+        for (const item of data) {
+          const nome = item.nome ? String(item.nome).trim() : "";
+          if (!nome) {
+            ignorados++;
+            continue;
+          }
+
+          const tipoRaw = (item.tipo || "").toUpperCase();
+          const tipo = tipoRaw === "FILME" || tipoRaw === "SERIE" ? tipoRaw : null;
+          if (!tipo) {
+            ignorados++;
+            continue;
+          }
+
+          const statusRaw = (item.status || "NAO_COMECEI").toUpperCase();
+          const statusValida =
+            statusRaw === "ASSISTINDO" ||
+            statusRaw === "ASSISTIDOS" ||
+            statusRaw === "NAO_COMECEI";
+          if (!statusValida) {
+            ignorados++;
+            continue;
+          }
+          const status = statusRaw;
+
+          const diretor =
+            item.diretor && String(item.diretor).trim()
+              ? String(item.diretor).trim()
+              : null;
+          const genero =
+            item.genero && String(item.genero).trim()
+              ? String(item.genero).trim()
+              : null;
+          const data_lancamento =
+            item.data_lancamento && String(item.data_lancamento).trim()
+              ? String(item.data_lancamento).trim()
+              : null;
+
+          let ano = null;
+          if (data_lancamento) {
+            const dt = new Date(data_lancamento);
+            const y = dt.getFullYear();
+            if (!Number.isNaN(y)) ano = y;
+          } else if (item.ano !== null && item.ano !== undefined && item.ano !== "") {
+            ano = parseInt(item.ano);
+          }
+
+          const streaming =
+            item.streaming && String(item.streaming).trim()
+              ? String(item.streaming).trim()
+              : null;
+          const imagem_url =
+            item.imagem_url && String(item.imagem_url).trim()
+              ? String(item.imagem_url).trim()
+              : null;
+
+          const avaliacao = sanitizeRating(item.avaliacao);
+          const franquia =
+            item.franquia && String(item.franquia).trim()
+              ? String(item.franquia).trim()
+              : null;
+
+          const key = `${nome.toLowerCase()}|${tipo}|${ano || ""}`;
+          if (existentesKeys.has(key)) {
+            ignorados++;
+            continue;
+          }
+
+          existentesKeys.add(key);
+          toInsert.push({
+            nome,
+            diretor,
+            genero,
+            data_lancamento,
+            ano,
+            streaming,
+            tipo,
+            status,
+            avaliacao,
+            imagem_url,
+            franquia,
+          });
+        }
+
+        if (!toInsert.length) {
+          showMessage(
+            "Nenhuma mídia nova para importar (todas existentes ou inválidas).",
+            "error"
+          );
+          return;
+        }
+
+        const { error } = await client.from(TABLE_MIDIAS).insert(toInsert);
+        if (error) {
+          console.error(error);
+          showMessage("Erro ao importar mídias.", "error");
+        } else {
+          const msg =
+            `Importadas ${toInsert.length} mídia(s)` +
+            (ignorados ? `, ${ignorados} ignorada(s).` : ".");
+          showMessage(msg);
+          midiaImportFile.value = "";
+          await carregarTudo();
+        }
+      } catch (err) {
+        console.error(err);
+        showMessage("Erro ao importar mídias.", "error");
+      }
+    });
+
+    // ======= CARREGAR TUDO =======
+    async function carregarTudo() {
+      listaMidias.textContent = "Carregando...";
+
+      const { data: midiasData, error: midiasError } = await client
+        .from(TABLE_MIDIAS)
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (midiasError) {
+        console.error(midiasError);
+        showMessage("Erro ao carregar mídias.", "error", 6000);
+        return;
+      }
+
+      const { data: epData, error: epError } = await client
+        .from(TABLE_EPISODIOS)
+        .select("*")
+        .order("temporada", { ascending: true })
+        .order("numero", { ascending: true });
+
+      if (epError) {
+        console.error(epError);
+        showMessage("Erro ao carregar episódios.", "error", 6000);
+        return;
+      }
+
+      todasMidias = midiasData || [];
+      episodiosPorMidia = {};
+      (epData || []).forEach((ep) => {
+        if (!episodiosPorMidia[ep.midia_id]) episodiosPorMidia[ep.midia_id] = [];
+        episodiosPorMidia[ep.midia_id].push(ep);
+      });
+
+      atualizarFiltros(todasMidias);
+      aplicarFiltros();
+      renderTopLists();
+      renderColecoes();
+
+      if (midiaAtualEpisodios) {
+        const found = todasMidias.find((m) => m.id === midiaAtualEpisodios.id);
+        if (found) {
+          midiaAtualEpisodios = found;
+          renderizarEpisodiosView();
+        } else {
+          midiaAtualEpisodios = null;
+          mostrarMainView();
+        }
+      }
+    }
+
+    // ======= FILTROS =======
+    function atualizarFiltros(midias) {
+      const setS = new Set();
+      const setA = new Set();
+      const setG = new Set();
+      const setF = new Set();
+
+      midias.forEach((m) => {
+        if (m.streaming) setS.add(m.streaming);
+        if (m.ano) setA.add(m.ano);
+        if (m.genero) setG.add(m.genero);
+        if (m.franquia) setF.add(m.franquia);
+      });
+
+      const curS = filtroStreaming.value;
+      filtroStreaming.innerHTML = '<option value="">Todos</option>';
+      Array.from(setS)
+        .sort((a, b) => a.localeCompare(b))
+        .forEach((s) => {
+          const opt = document.createElement("option");
+          opt.value = s;
+          opt.textContent = s;
+          filtroStreaming.appendChild(opt);
+        });
+      if (curS) filtroStreaming.value = curS;
+
+      const curA = filtroAno.value;
+      filtroAno.innerHTML = '<option value="">Todos</option>';
+      Array.from(setA)
+        .sort((a, b) => a - b)
+        .forEach((a) => {
+          const opt = document.createElement("option");
+          opt.value = a;
+          opt.textContent = a;
+          filtroAno.appendChild(opt);
+        });
+      if (curA) filtroAno.value = curA;
+
+      const curG = filtroGenero.value;
+      filtroGenero.innerHTML = '<option value="">Todos</option>';
+      Array.from(setG)
+        .sort((a, b) => a.localeCompare(b))
+        .forEach((g) => {
+          const opt = document.createElement("option");
+          opt.value = g;
+          opt.textContent = g;
+          filtroGenero.appendChild(opt);
+        });
+      if (curG) filtroGenero.value = curG;
+
+      const curF = filtroFranquia.value;
+      filtroFranquia.innerHTML = '<option value="">Todas</option>';
+      Array.from(setF)
+        .sort((a, b) => a.localeCompare(b))
+        .forEach((f) => {
+          const opt = document.createElement("option");
+          opt.value = f;
+          opt.textContent = f;
+          filtroFranquia.appendChild(opt);
+        });
+      if (curF) filtroFranquia.value = curF;
+    }
+
+    function aplicarFiltros() {
+      const nomeFiltro = filtroNome.value.trim().toLowerCase();
+      const diretorFiltro = filtroDiretor.value.trim().toLowerCase();
+      const notaMinFiltro = filtroNotaMin.value ? parseFloat(filtroNotaMin.value) : null;
+      const streamingFiltro = filtroStreaming.value;
+      const anoFiltro = filtroAno.value ? parseInt(filtroAno.value) : null;
+      const generoFiltro = filtroGenero.value;
+      const franquiaFiltro = filtroFranquia.value;
+
+      const filtradas = todasMidias.filter((m) => {
+        let ok = true;
+
+        if (nomeFiltro) {
+          const nome = (m.nome || "").toLowerCase();
+          if (!nome.includes(nomeFiltro)) ok = false;
+        }
+
+        if (diretorFiltro) {
+          const dir = (m.diretor || "").toLowerCase();
+          if (!dir.includes(diretorFiltro)) ok = false;
+        }
+
+        if (notaMinFiltro !== null && !Number.isNaN(notaMinFiltro)) {
+          const starsVal = sanitizeRating(m.avaliacao);
+          if (starsVal === null || starsVal < notaMinFiltro) {
+            ok = false;
+          }
+        }
+
+        if (streamingFiltro && m.streaming !== streamingFiltro) ok = false;
+        if (anoFiltro && m.ano !== anoFiltro) ok = false;
+        if (generoFiltro && m.genero !== generoFiltro) ok = false;
+        if (franquiaFiltro && m.franquia !== franquiaFiltro) ok = false;
+        if (abaStatus && m.status !== abaStatus) ok = false;
+
+        return ok;
+      });
+
+      renderizarListas(filtradas);
+    }
+
+    filtroNome.addEventListener("input", aplicarFiltros);
+    filtroDiretor.addEventListener("input", aplicarFiltros);
+    filtroNotaMin.addEventListener("change", aplicarFiltros);
+    filtroStreaming.addEventListener("change", aplicarFiltros);
+    filtroAno.addEventListener("change", aplicarFiltros);
+    filtroGenero.addEventListener("change", aplicarFiltros);
+    filtroFranquia.addEventListener("change", aplicarFiltros);
+
+    btnLimparFiltros.addEventListener("click", () => {
+      filtroNome.value = "";
+      filtroDiretor.value = "";
+      filtroNotaMin.value = "";
+      filtroStreaming.value = "";
+      filtroAno.value = "";
+      filtroGenero.value = "";
+      filtroFranquia.value = "";
+      abaStatus = "";
+      document.querySelectorAll(".tab-status").forEach((btn) => {
+        btn.classList.toggle("tab-status-active", (btn.dataset.status || "") === "");
+      });
+      aplicarFiltros();
+    });
+
+    btnFiltroAssistindo.addEventListener("click", () => {
+      selecionarAba("ASSISTINDO");
+    });
+
+    // ======= ABAS =======
+    function selecionarAba(status) {
+      abaStatus = status || "";
+      document.querySelectorAll(".tab-status").forEach((btn) => {
+        const s = btn.dataset.status || "";
+        btn.classList.toggle("tab-status-active", s === abaStatus);
+      });
+      aplicarFiltros();
+    }
+
+    tabsBar.querySelectorAll(".tab-status").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const st = btn.dataset.status || "";
+        selecionarAba(st);
+      });
+    });
+
+    // ======= RENDERIZAÇÃO PRINCIPAL =======
+    function renderizarListas(midias) {
+      listaMidias.innerHTML = "";
+
+      let cAssind = 0,
+        cAssd = 0,
+        cNaoC = 0;
+
+      midias.forEach((m) => {
+        if (m.status === "ASSISTINDO") cAssind++;
+        else if (m.status === "ASSISTIDOS") cAssd++;
+        else if (m.status === "NAO_COMECEI") cNaoC++;
+      });
+
+      tabTodos.textContent = midias.length ? `(${midias.length})` : "";
+      tabAss.textContent = cAssind ? `(${cAssind})` : "";
+      tabAssd.textContent = cAssd ? `(${cAssd})` : "";
+      tabNao.textContent = cNaoC ? `(${cNaoC})` : "";
+
+      midias.forEach((m) => {
+        const card = criarCard(m);
+        listaMidias.appendChild(card);
+      });
+
+      if (!midias.length) {
+        const vazio = document.createElement("div");
+        vazio.style.fontSize = "0.82rem";
+        vazio.style.color = "var(--text-soft)";
+        vazio.textContent = "Nenhuma mídia encontrada com os filtros atuais.";
+        listaMidias.appendChild(vazio);
+      }
+    }
+
+    async function excluirMidia(m) {
+      if (!confirm(`Excluir "${m.nome}" e todos os episódios?`)) return;
+      const { error } = await client.from(TABLE_MIDIAS).delete().eq("id", m.id);
+      if (error) {
+        console.error(error);
+        showMessage("Erro ao excluir registro.", "error");
+      } else {
+        showMessage("Registro excluído.");
+        await carregarTudo();
+      }
+    }
+
+    function criarCard(midia) {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      if (midia.imagem_url) {
+        const img = document.createElement("img");
+        img.src = midia.imagem_url;
+        img.alt = midia.nome;
+        card.appendChild(img);
+      }
+
+      const content = document.createElement("div");
+      content.className = "card-content";
+
+      const title = document.createElement("div");
+      title.className = "card-title";
+      title.textContent = midia.nome;
+      content.appendChild(title);
+
+      const badges = document.createElement("div");
+      badges.className = "badges";
+
+      const bTipo = document.createElement("span");
+      bTipo.className = "badge";
+      bTipo.innerHTML = `<span class="badge-dot"></span><span>${
+        midia.tipo === "FILME" ? "FILME" : "SÉRIE"
+      }</span>`;
+      badges.appendChild(bTipo);
+
+      if (midia.ano) {
+        const bAno = document.createElement("span");
+        bAno.className = "badge";
+        bAno.textContent = midia.ano;
+        badges.appendChild(bAno);
+      }
+
+      if (midia.streaming) {
+        const bStr = document.createElement("span");
+        bStr.className = "badge";
+        bStr.textContent = midia.streaming;
+        badges.appendChild(bStr);
+      }
+
+      if (midia.franquia) {
+        const bFr = document.createElement("span");
+        bFr.className = "badge";
+        bFr.textContent = midia.franquia;
+        badges.appendChild(bFr);
+      }
+
+      const bStatus = document.createElement("span");
+      bStatus.className = "badge";
+      bStatus.textContent = mapStatusToLabel(midia.status);
+      badges.appendChild(bStatus);
+
+      content.appendChild(badges);
+
+      const metaParts = [];
+      if (midia.diretor) metaParts.push(`Dir: ${midia.diretor}`);
+      if (midia.genero) metaParts.push(midia.genero);
+      if (midia.data_lancamento) {
+        const d = new Date(midia.data_lancamento);
+        if (!Number.isNaN(d.getTime())) {
+          metaParts.push(
+            "Lançamento: " + d.toLocaleDateString("pt-BR", { timeZone: "UTC" })
+          );
+        }
+      }
+      if (metaParts.length) {
+        const meta = document.createElement("div");
+        meta.className = "meta-line";
+        meta.textContent = metaParts.join(" • ");
+        content.appendChild(meta);
+      }
+
+      const ratingVal = sanitizeRating(midia.avaliacao);
+      if (ratingVal !== null) {
+        const av = document.createElement("div");
+        av.className = "avaliacao-text";
+        av.innerHTML = `<span class="stars-display">${renderStars(
+          ratingVal
+        )}</span> (${formatRating(ratingVal)}/5)`;
+        content.appendChild(av);
+      }
+
+      if (midia.tipo === "SERIE") {
+        const eps = episodiosPorMidia[midia.id] || [];
+        const temporadasSet = new Set(eps.map((e) => e.temporada));
+        const total = eps.length;
+        const assistidos = eps.filter((e) => e.status === "ASSISTIDOS").length;
+        const perc = total > 0 ? Math.round((assistidos / total) * 100) : 0;
+
+        const resumoSerie = document.createElement("div");
+        resumoSerie.className = "serie-resumo";
+        let texto = `Temporadas: ${temporadasSet.size || 0} • Episódios: ${total}`;
+        if (total > 0) {
+          texto += ` • Progresso: ${assistidos}/${total} (${perc}%)`;
+        }
+        resumoSerie.textContent = texto;
+        content.appendChild(resumoSerie);
+
+        const naoAssistidos = eps
+          .filter((ep) => ep.status !== "ASSISTIDOS")
+          .sort((a, b) => {
+            if (a.temporada !== b.temporada) return a.temporada - b.temporada;
+            return a.numero - b.numero;
+          });
+
+        if (naoAssistidos.length > 0) {
+          const proximo = naoAssistidos[0];
+          const divProx = document.createElement("div");
+          divProx.className = "serie-resumo";
+          const codigo = `T${String(proximo.temporada).padStart(2, "0")}E${String(
+            proximo.numero
+          ).padStart(2, "0")}`;
+          divProx.innerHTML = `<strong>Próximo:</strong> ${codigo}${
+            proximo.titulo ? " – " + proximo.titulo : ""
+          }`;
+          content.appendChild(divProx);
+        }
+      }
+
+      const statusLabel = document.createElement("div");
+      statusLabel.className = "status-label";
+      statusLabel.textContent = "Status:";
+      content.appendChild(statusLabel);
+
+      const statusSelectCard = document.createElement("select");
+      statusSelectCard.className = "status-select";
+      ["ASSISTINDO", "ASSISTIDOS", "NAO_COMECEI"].forEach((st) => {
+        const op = document.createElement("option");
+        op.value = st;
+        op.textContent = mapStatusToLabel(st);
+        if (midia.status === st) op.selected = true;
+        statusSelectCard.appendChild(op);
+      });
+      statusSelectCard.addEventListener("change", async () => {
+        const novoStatus = statusSelectCard.value;
+        const { error } = await client
+          .from(TABLE_MIDIAS)
+          .update({ status: novoStatus })
+          .eq("id", midia.id);
+        if (error) {
+          console.error(error);
+          showMessage("Erro ao atualizar status.", "error");
+        } else {
+          showMessage("Status atualizado.");
+          await carregarTudo();
+        }
+      });
+      content.appendChild(statusSelectCard);
+
+      const actions = document.createElement("div");
+      actions.className = "card-actions";
+
+      const btnEdit = document.createElement("button");
+      btnEdit.type = "button";
+      btnEdit.className = "btn btn-outline";
+      btnEdit.innerHTML = "<span>✏️</span><span>Editar</span>";
+      btnEdit.addEventListener("click", () => entrarModoEdicao(midia));
+      actions.appendChild(btnEdit);
+
+      const btnDel = document.createElement("button");
+      btnDel.type = "button";
+      btnDel.className = "btn btn-danger";
+      btnDel.innerHTML = "<span>🗑</span><span>Excluir</span>";
+      btnDel.addEventListener("click", () => excluirMidia(midia));
+      actions.appendChild(btnDel);
+
+      if (midia.tipo === "SERIE") {
+        const btnEps = document.createElement("button");
+        btnEps.type = "button";
+        btnEps.className = "btn btn-primary";
+        btnEps.innerHTML = "<span>📂</span><span>Ver episódios</span>";
+        btnEps.addEventListener("click", () => abrirEpisodiosView(midia));
+        actions.appendChild(btnEps);
+      }
+
+      content.appendChild(actions);
+      card.appendChild(content);
+      return card;
+    }
+
+    // ======= TOP LISTAS =======
+    function buildTopRow(m, rank) {
+      const row = document.createElement("div");
+      row.className = "top10-row";
+
+      const rankDiv = document.createElement("div");
+      rankDiv.className = "top10-row-rank";
+      rankDiv.textContent = `#${rank}`;
+      row.appendChild(rankDiv);
+
+      const info = document.createElement("div");
+      info.className = "top10-row-info";
+
+      const title = document.createElement("div");
+      title.className = "top10-row-title";
+      title.textContent = m.nome;
+      info.appendChild(title);
+
+      const meta = document.createElement("div");
+      meta.className = "top10-row-meta";
+      const partes = [];
+      if (m.tipo) partes.push(m.tipo === "SERIE" ? "Série" : "Filme");
+      if (m.ano) partes.push(m.ano);
+      if (m.streaming) partes.push(m.streaming);
+      if (m.franquia) partes.push(`Franquia: ${m.franquia}`);
+      meta.textContent = partes.join(" • ");
+      info.appendChild(meta);
+
+      row.appendChild(info);
+
+      const ratingDiv = document.createElement("div");
+      ratingDiv.className = "top10-row-rating";
+
+      const ratingVal = sanitizeRating(
+        m.rating !== undefined ? m.rating : m.avaliacao
+      );
+      if (ratingVal !== null) {
+        ratingDiv.innerHTML = `<span>${renderStars(
+          ratingVal
+        )}</span><span>${formatRating(ratingVal)}/5</span>`;
+      } else {
+        ratingDiv.innerHTML = "<span>—</span>";
+      }
+
+      row.appendChild(ratingDiv);
+      return row;
+    }
+
+    function renderTopLists() {
+      if (!todasMidias.length) {
+        topsPanel.style.display = "none";
+        return;
+      }
+      topsPanel.style.display = "block";
+
+      top10BestList.innerHTML = "";
+      top10WorstList.innerHTML = "";
+      top10LastList.innerHTML = "";
+
+      const avaliadas = (todasMidias || [])
+        .map((m) => ({
+          ...m,
+          rating: sanitizeRating(m.avaliacao),
+        }))
+        .filter((m) => m.rating !== null);
+
+      const best = [...avaliadas]
+        .sort((a, b) => {
+          if (b.rating !== a.rating) return b.rating - a.rating;
+          return (a.nome || "").localeCompare(b.nome || "");
+        })
+        .slice(0, 10);
+
+      best.forEach((m, idx) => {
+        top10BestList.appendChild(buildTopRow(m, idx + 1));
+      });
+
+      if (!best.length) {
+        const vazio = document.createElement("div");
+        vazio.style.fontSize = "0.8rem";
+        vazio.style.color = "var(--text-soft)";
+        vazio.textContent = "Nenhuma mídia avaliada ainda.";
+        top10BestList.appendChild(vazio);
+      }
+
+      const worst = [...avaliadas]
+        .sort((a, b) => {
+          if (a.rating !== b.rating) return a.rating - b.rating;
+          return (a.nome || "").localeCompare(b.nome || "");
+        })
+        .slice(0, 10);
+
+      worst.forEach((m, idx) => {
+        top10WorstList.appendChild(buildTopRow(m, idx + 1));
+      });
+
+      if (!worst.length) {
+        const vazio = document.createElement("div");
+        vazio.style.fontSize = "0.8rem";
+        vazio.style.color = "var(--text-soft)";
+        vazio.textContent = "Nenhuma mídia avaliada ainda.";
+        top10WorstList.appendChild(vazio);
+      }
+
+      const last = [...todasMidias]
+        .sort((a, b) => {
+          if (a.created_at && b.created_at) {
+            return b.created_at.localeCompare(a.created_at);
+          }
+          if (a.created_at && !b.created_at) return -1;
+          if (!a.created_at && b.created_at) return 1;
+          if (a.id && b.id) return b.id - a.id;
+          return 0;
+        })
+        .slice(0, 10);
+
+      last.forEach((m, idx) => {
+        top10LastList.appendChild(buildTopRow(m, idx + 1));
+      });
+
+      if (!last.length) {
+        const vazio = document.createElement("div");
+        vazio.style.fontSize = "0.8rem";
+        vazio.style.color = "var(--text-soft)";
+        vazio.textContent = "Nenhuma mídia cadastrada ainda.";
+        top10LastList.appendChild(vazio);
+      }
+    }
+
+    // ======= COLEÇÕES DE FRANQUIAS =======
+    function aplicarFiltroFranquia(nomeFranquia) {
+      filtroFranquia.value = nomeFranquia;
+      // limpa aba de status para mostrar todos daquela franquia
+      abaStatus = "";
+      document.querySelectorAll(".tab-status").forEach((btn) => {
+        const s = btn.dataset.status || "";
+        btn.classList.toggle("tab-status-active", s === "");
+      });
+      aplicarFiltros();
+      // garante que o usuário veja a lista principal
+      mostrarMainView();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function renderColecoes() {
+      colecoesList.innerHTML = "";
+      const grupos = {};
+
+      (todasMidias || []).forEach((m) => {
+        if (!m.franquia) return;
+        const key = m.franquia;
+        if (!grupos[key]) grupos[key] = [];
+        grupos[key].push(m);
+      });
+
+      const nomesFranquias = Object.keys(grupos).filter(
+        (nome) => grupos[nome].length > 1
+      );
+
+      if (!nomesFranquias.length) {
+        colecoesPanel.style.display = "none";
+        return;
+      }
+      colecoesPanel.style.display = "block";
+
+      nomesFranquias
+        .sort((a, b) => a.localeCompare(b))
+        .forEach((nomeFranquia) => {
+          const lista = grupos[nomeFranquia];
+          const card = document.createElement("div");
+          card.className = "colecao-card";
+
+          const title = document.createElement("div");
+          title.className = "colecao-title";
+          title.innerHTML = `<span>${nomeFranquia}</span><span style="font-size:0.75rem; color:var(--text-soft);">${lista.length} título(s)</span>`;
+          card.appendChild(title);
+
+          const anos = new Set();
+          lista.forEach((m) => {
+            if (m.ano) anos.add(m.ano);
+          });
+          const meta = document.createElement("div");
+          meta.className = "colecao-meta";
+          if (anos.size) {
+            meta.textContent = "Anos: " + Array.from(anos).sort((a, b) => a - b).join(", ");
+          } else {
+            meta.textContent = "Anos: —";
+          }
+          card.appendChild(meta);
+
+          // separa por tipo
+          const filmes = lista.filter((m) => m.tipo === "FILME");
+          const series = lista.filter((m) => m.tipo === "SERIE");
+
+          if (filmes.length) {
+            const sub = document.createElement("div");
+            sub.className = "colecao-subtitle";
+            sub.textContent = "Filmes";
+            card.appendChild(sub);
+
+            const postersWrapper = document.createElement("div");
+            postersWrapper.className = "colecao-posters";
+
+            filmes.forEach((m) => {
+              if (!m.imagem_url) return;
+              const img = document.createElement("img");
+              img.className = "colecao-poster-img";
+              img.src = m.imagem_url;
+              img.alt = m.nome;
+              img.title = `${m.nome}${m.ano ? " (" + m.ano + ")" : ""}`;
+              img.addEventListener("click", (e) => {
+                e.stopPropagation();
+                aplicarFiltroFranquia(nomeFranquia);
+              });
+              postersWrapper.appendChild(img);
+            });
+
+            if (postersWrapper.childElementCount) {
+              card.appendChild(postersWrapper);
+            }
+
+            const listagemF = document.createElement("div");
+            listagemF.className = "colecao-listagem";
+            listagemF.innerHTML = filmes
+              .sort((a, b) => {
+                if (a.ano && b.ano && a.ano !== b.ano) return a.ano - b.ano;
+                return (a.nome || "").localeCompare(b.nome || "");
+              })
+              .map((m) => {
+                const p = [];
+                p.push(m.nome);
+                if (m.ano) p.push(`(${m.ano})`);
+                return "• " + p.join(" ");
+              })
+              .join("<br>");
+            card.appendChild(listagemF);
+          }
+
+          if (series.length) {
+            const sub = document.createElement("div");
+            sub.className = "colecao-subtitle";
+            sub.textContent = "Séries";
+            card.appendChild(sub);
+
+            const postersWrapper = document.createElement("div");
+            postersWrapper.className = "colecao-posters";
+
+            series.forEach((m) => {
+              if (!m.imagem_url) return;
+              const img = document.createElement("img");
+              img.className = "colecao-poster-img";
+              img.src = m.imagem_url;
+              img.alt = m.nome;
+              img.title = `${m.nome}${m.ano ? " (" + m.ano + ")" : ""}`;
+              img.addEventListener("click", (e) => {
+                e.stopPropagation();
+                aplicarFiltroFranquia(nomeFranquia);
+              });
+              postersWrapper.appendChild(img);
+            });
+
+            if (postersWrapper.childElementCount) {
+              card.appendChild(postersWrapper);
+            }
+
+            const listagemS = document.createElement("div");
+            listagemS.className = "colecao-listagem";
+            listagemS.innerHTML = series
+              .sort((a, b) => {
+                if (a.ano && b.ano && a.ano !== b.ano) return a.ano - b.ano;
+                return (a.nome || "").localeCompare(b.nome || "");
+              })
+              .map((m) => {
+                const p = [];
+                p.push(m.nome);
+                if (m.ano) p.push(`(${m.ano})`);
+                return "• " + p.join(" ");
+              })
+              .join("<br>");
+            card.appendChild(listagemS);
+          }
+
+          // clique no título também filtra
+          title.style.cursor = "pointer";
+          title.addEventListener("click", () => aplicarFiltroFranquia(nomeFranquia));
+
+          colecoesList.appendChild(card);
+        });
+    }
+
+    // ======= VIEWS =======
+    function mostrarMainView() {
+      mainView.style.display = "block";
+      topsPanel.style.display = "block";
+      colecoesPanel.style.display = "block";
+      gerirView.style.display = "none";
+      episodiosView.style.display = "none";
+    }
+
+    function mostrarGerirView() {
+      mainView.style.display = "none";
+      topsPanel.style.display = "none";
+      colecoesPanel.style.display = "none";
+      gerirView.style.display = "block";
+      episodiosView.style.display = "none";
+    }
+
+    function mostrarEpisodiosView() {
+      mainView.style.display = "none";
+      topsPanel.style.display = "none";
+      colecoesPanel.style.display = "none";
+      gerirView.style.display = "none";
+      episodiosView.style.display = "block";
+    }
+
+    btnVoltar.addEventListener("click", () => {
+      midiaAtualEpisodios = null;
+      sairModoEdicaoEp();
+      mostrarMainView();
+    });
+
+    btnGerirColecao.addEventListener("click", () => {
+      mostrarGerirView();
+    });
+
+    btnVoltarLista.addEventListener("click", () => {
+      mostrarMainView();
+    });
+
+    function abrirEpisodiosView(midia) {
+      midiaAtualEpisodios = midia;
+      sairModoEdicaoEp();
+      renderizarEpisodiosView();
+      mostrarEpisodiosView();
+    }
+
+    function renderizarEpisodiosView() {
+      const midia = midiaAtualEpisodios;
+      if (!midia) return;
+      const eps = episodiosPorMidia[midia.id] || [];
+      const temporadasSet = new Set(eps.map((e) => e.temporada));
+      const total = eps.length;
+      const assistidos = eps.filter((e) => e.status === "ASSISTIDOS").length;
+      const perc = total > 0 ? Math.round((assistidos / total) * 100) : 0;
+
+      episodiosTituloBar.textContent = midia.nome
+        ? `Episódios de ${midia.nome}`
+        : "Episódios";
+
+      episodiosHeader.innerHTML = "";
+      if (midia.imagem_url) {
+        const img = document.createElement("img");
+        img.src = midia.imagem_url;
+        img.alt = midia.nome;
+        episodiosHeader.appendChild(img);
+      }
+
+      const info = document.createElement("div");
+      info.className = "episodios-header-info";
+
+      const titulo = document.createElement("div");
+      titulo.className = "episodios-header-titulo";
+      titulo.textContent = midia.nome;
+      info.appendChild(titulo);
+
+      const meta = document.createElement("div");
+      meta.className = "episodios-meta";
+      const partes = [];
+      partes.push(midia.tipo === "SERIE" ? "SÉRIE" : "FILME");
+      if (midia.ano) partes.push(`• ${midia.ano}`);
+      if (midia.streaming) partes.push(`• ${midia.streaming}`);
+      if (midia.franquia) partes.push(`• Franquia: ${midia.franquia}`);
+      meta.textContent = partes.join(" ");
+      info.appendChild(meta);
+
+      const resumo = document.createElement("div");
+      resumo.className = "episodios-resumo";
+      resumo.innerHTML = `Temporadas: <strong>${
+        temporadasSet.size || 0
+      }</strong> • Episódios: <strong>${total}</strong> • Progresso: <strong>${assistidos}/${total} (${perc}%)</strong>`;
+      info.appendChild(resumo);
+
+      const starsVal = sanitizeRating(midia.avaliacao);
+      if (starsVal !== null) {
+        const av = document.createElement("div");
+        av.className = "episodios-resumo";
+        av.innerHTML = `Avaliação geral: <span class="stars-display">${renderStars(
+          starsVal
+        )}</span> (${formatRating(starsVal)}/5)`;
+        info.appendChild(av);
+      }
+
+      episodiosHeader.appendChild(info);
+
+      epStatusSelect.value = midia.status || "ASSISTINDO";
+
+      episodiosList.innerHTML = "";
+      if (!eps.length) {
+        const vazio = document.createElement("div");
+        vazio.className = "episodios-list-vazia";
+        vazio.textContent = "Nenhum episódio cadastrado ainda.";
+        episodiosList.appendChild(vazio);
+      } else {
+        const porTemp = {};
+        eps.forEach((ep) => {
+          if (!porTemp[ep.temporada]) porTemp[ep.temporada] = [];
+          porTemp[ep.temporada].push(ep);
+        });
+
+        const grupos = [
+          { status: "ASSISTINDO", label: "Assistindo" },
+          { status: "ASSISTIDOS", label: "Assistidos" },
+          { status: "NAO_COMECEI", label: "Ainda não comecei" },
+        ];
+
+        Object.keys(porTemp)
+          .sort((a, b) => parseInt(a) - parseInt(b))
+          .forEach((temp) => {
+            const bloco = document.createElement("div");
+            bloco.className = "temporada-bloco";
+
+            const t = document.createElement("div");
+            t.className = "temporada-titulo";
+            t.textContent = `Temporada ${temp}`;
+            bloco.appendChild(t);
+
+            grupos.forEach((g) => {
+              const epsGrupo = porTemp[temp]
+                .filter((ep) => ep.status === g.status)
+                .sort((a, b) => a.numero - b.numero);
+
+              if (!epsGrupo.length) return;
+
+              const headerStatus = document.createElement("div");
+              headerStatus.className = "episodios-status-header";
+              headerStatus.textContent = g.label;
+              bloco.appendChild(headerStatus);
+
+              epsGrupo.forEach((ep) => {
+                const item = document.createElement("div");
+                item.className = "episodio-item";
+
+                const topline = document.createElement("div");
+                topline.className = "episodio-topline";
+
+                const infoEp = document.createElement("div");
+                infoEp.className = "episodio-info";
+
+                const codigo = `T${String(ep.temporada).padStart(2, "0")}E${String(
+                  ep.numero
+                ).padStart(2, "0")}`;
+
+                let text = `${codigo}`;
+                if (ep.titulo) text += ` – ${ep.titulo}`;
+
+                const epStarsVal = sanitizeRating(ep.avaliacao);
+                if (epStarsVal !== null) {
+                  text += ` • Nota: ${renderStars(epStarsVal)} (${formatRating(
+                    epStarsVal
+                  )}/5)`;
+                }
+
+                infoEp.textContent = text;
+
+                const acao = document.createElement("div");
+                acao.className = "episodio-acao";
+
+                const btnEditEp = document.createElement("button");
+                btnEditEp.type = "button";
+                btnEditEp.className = "btn btn-outline";
+                btnEditEp.style.fontSize = "0.72rem";
+                btnEditEp.innerHTML = "Editar";
+                btnEditEp.addEventListener("click", () => entrarModoEdicaoEp(ep));
+                acao.appendChild(btnEditEp);
+
+                const btnDel = document.createElement("button");
+                btnDel.type = "button";
+                btnDel.className = "btn btn-danger";
+                btnDel.style.fontSize = "0.72rem";
+                btnDel.textContent = "Excluir";
+                btnDel.addEventListener("click", () => excluirEpisodio(ep));
+                acao.appendChild(btnDel);
+
+                topline.appendChild(infoEp);
+                topline.appendChild(acao);
+                item.appendChild(topline);
+
+                if (ep.resumo) {
+                  const resumoEp = document.createElement("div");
+                  resumoEp.className = "episodio-resumo";
+                  resumoEp.textContent = ep.resumo;
+                  item.appendChild(resumoEp);
+                }
+
+                bloco.appendChild(item);
+              });
+            });
+
+            episodiosList.appendChild(bloco);
+          });
+      }
+    }
+
+    // ======= INICIALIZAÇÃO =======
+    updateMidiaStarsDisplay();
+    updateEpStarsDisplay();
+    mostrarMainView();
+    carregarTudo();
+  </script>
+</body>
+</html>
