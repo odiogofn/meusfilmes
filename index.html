@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Minha Lista de Filmes e Séries</title>
+  <title>MediaVault – Minha coleção</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
@@ -37,6 +37,44 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+    }
+
+    /* LOADING OVERLAY */
+    #loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.18);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+
+    #loading-overlay-inner {
+      background: #ffffff;
+      padding: 8px 14px;
+      border-radius: 999px;
+      box-shadow: var(--shadow-soft);
+      font-size: 0.85rem;
+      color: var(--text-soft);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .loader-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--primary);
+      animation: bounce 0.7s infinite alternate;
+    }
+
+    @keyframes bounce {
+      to {
+        transform: translateY(-4px);
+        opacity: 0.4;
+      }
     }
 
     .topbar {
@@ -338,6 +376,14 @@
       margin-top: 10px;
     }
 
+    /* GRID só para a lista principal */
+    #lista-midias {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
+
     .card {
       background: #f9fafb;
       border-radius: 10px;
@@ -447,12 +493,24 @@
     .stars-display {
       font-size: 0.9rem;
       color: #b45309;
+      min-height: 18px;
     }
 
     .rating-wrapper {
       display: flex;
       flex-direction: column;
       gap: 2px;
+    }
+
+    .rating-clickable {
+      display: inline-block;
+      min-width: 90px;
+      min-height: 20px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .rating-clickable:hover {
+      filter: brightness(1.03);
     }
 
     /* EPISÓDIOS VIEW */
@@ -578,6 +636,12 @@
     .episodios-import small {
       font-size: 0.74rem;
       color: var(--text-soft);
+    }
+
+    /* FILTROS EPISÓDIOS */
+    #episodios-filtros {
+      margin-bottom: 8px;
+      margin-top: 4px;
     }
 
     /* TOP LISTAS */
@@ -724,6 +788,13 @@
   </style>
 </head>
 <body>
+  <div id="loading-overlay">
+    <div id="loading-overlay-inner">
+      <span class="loader-dot"></span>
+      <span id="loading-overlay-text">Carregando...</span>
+    </div>
+  </div>
+
   <div class="page-shell">
     <header class="topbar">
       <div class="topbar-inner">
@@ -838,7 +909,7 @@
             </button>
           </div>
 
-          <div id="lista-midias" class="cards-container"></div>
+          <div id="lista-midias"></div>
         </div>
 
         <!-- TOP LISTAS – SÓ NA PÁGINA PRINCIPAL -->
@@ -944,7 +1015,11 @@
                   step="0.5"
                   placeholder="Ex: 3.5"
                 />
-                <div id="avaliacao-stars-display" class="stars-display"></div>
+                <div
+                  id="avaliacao-stars-display"
+                  class="stars-display rating-clickable"
+                  title="Clique para definir as estrelas (0.5 em 0.5)."
+                ></div>
               </div>
             </div>
             <div class="form-field">
@@ -1048,7 +1123,11 @@
                   step="0.5"
                   placeholder="Ex: 4.5"
                 />
-                <div id="ep-avaliacao-stars-display" class="stars-display"></div>
+                <div
+                  id="ep-avaliacao-stars-display"
+                  class="stars-display rating-clickable"
+                  title="Clique para definir as estrelas (0.5 em 0.5)."
+                ></div>
               </div>
             </div>
             <div class="form-field" style="align-items:flex-start;">
@@ -1088,6 +1167,27 @@
             </div>
           </div>
 
+          <!-- FILTROS DE EPISÓDIOS -->
+          <div id="episodios-filtros" class="filters-row">
+            <div class="form-field">
+              <label for="ep-filtro-titulo">Buscar episódio</label>
+              <input id="ep-filtro-titulo" placeholder="Título ou código T01E01" />
+            </div>
+            <div class="form-field">
+              <label for="ep-filtro-status">Status</label>
+              <select id="ep-filtro-status">
+                <option value="">Todos</option>
+                <option value="ASSISTINDO">ASSISTINDO</option>
+                <option value="ASSISTIDOS">ASSISTIDOS</option>
+                <option value="NAO_COMECEI">AINDA NÃO COMECEI</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="ep-filtro-temp">Temporada</label>
+              <input id="ep-filtro-temp" type="number" min="1" placeholder="Todas" />
+            </div>
+          </div>
+
           <div class="episodios-list" id="episodios-list"></div>
         </div>
       </div>
@@ -1106,6 +1206,14 @@
     const TABLE_MIDIAS = "midias";
     const TABLE_EPISODIOS = "episodios";
 
+    const STATUS_LABELS = {
+      ASSISTINDO: "ASSISTINDO",
+      ASSISTIDOS: "ASSISTIDOS",
+      NAO_COMECEI: "AINDA NÃO COMECEI",
+    };
+
+    const LS_TAB_KEY = "mvLastTabStatus";
+
     // ELEMENTOS PRINCIPAIS
     const mainView = document.getElementById("main-view");
     const topsPanel = document.getElementById("tops-panel");
@@ -1114,6 +1222,9 @@
     const gerirView = document.getElementById("gerir-view");
     const episodiosView = document.getElementById("episodios-view");
     const messageDiv = document.getElementById("message");
+
+    const loadingOverlay = document.getElementById("loading-overlay");
+    const loadingOverlayText = document.getElementById("loading-overlay-text");
 
     const form = document.getElementById("midia-form");
     const nomeInput = document.getElementById("nome");
@@ -1183,15 +1294,30 @@
     const btnImportEp = document.getElementById("btn-import-ep");
     const btnExportModeloEp = document.getElementById("btn-export-modelo-ep");
 
+    // Filtros de episódios
+    const epFiltroTitulo = document.getElementById("ep-filtro-titulo");
+    const epFiltroStatus = document.getElementById("ep-filtro-status");
+    const epFiltroTemp = document.getElementById("ep-filtro-temp");
+
     // ESTADO
     let todasMidias = [];
     let episodiosPorMidia = {};
     let midiaEmEdicao = null;
     let midiaAtualEpisodios = null;
     let episodioEmEdicao = null;
-    let abaStatus = ""; // "", "ASSISTINDO", "ASSISTIDOS", "NAO_COMECEI"
+    let abaStatus = localStorage.getItem(LS_TAB_KEY) || "";
 
     // ======= UTIL =======
+    function setLoading(active, text) {
+      if (!loadingOverlay) return;
+      if (active) {
+        loadingOverlay.style.display = "flex";
+        loadingOverlayText.textContent = text || "Carregando...";
+      } else {
+        loadingOverlay.style.display = "none";
+      }
+    }
+
     function showMessage(text, type = "success", timeout = 3500) {
       if (!text) {
         messageDiv.textContent = "";
@@ -1209,8 +1335,7 @@
     }
 
     function mapStatusToLabel(status) {
-      if (status === "NAO_COMECEI") return "AINDA NÃO COMECEI";
-      return status;
+      return STATUS_LABELS[status] || status || "";
     }
 
     // Normaliza rating 0–5 (aceita decimais), força 0.5 em 0.5. 0 => null.
@@ -1251,8 +1376,25 @@
       epAvalStarsDisplay.textContent = renderStars(epAvalInput.value);
     }
 
-    avaliacaoInput.addEventListener("input", updateMidiaStarsDisplay);
-    epAvalInput.addEventListener("input", updateEpStarsDisplay);
+    function setupRatingComponent(inputEl, displayEl, updateFn) {
+      if (!displayEl) return;
+      displayEl.addEventListener("click", (ev) => {
+        const rect = displayEl.getBoundingClientRect();
+        const x = ev.clientX - rect.left;
+        let ratio = rect.width > 0 ? x / rect.width : 0;
+        if (ratio < 0) ratio = 0;
+        if (ratio > 1) ratio = 1;
+        let value = Math.round(ratio * 10) / 2; // 0–5 em passos de 0.5
+        if (value < 0.5) value = 0.5;
+        if (value > 5) value = 5;
+        inputEl.value = value;
+        updateFn();
+      });
+      displayEl.addEventListener("dblclick", () => {
+        inputEl.value = "";
+        updateFn();
+      });
+    }
 
     // Ano automático a partir da data de lançamento
     dataLancInput.addEventListener("change", () => {
@@ -1409,6 +1551,8 @@
           imagem_url,
         };
 
+        setLoading(true, midiaEmEdicao ? "Atualizando mídia..." : "Salvando mídia...");
+
         if (!midiaEmEdicao) {
           const { error } = await client.from(TABLE_MIDIAS).insert(payload);
           if (error) {
@@ -1438,6 +1582,7 @@
         showMessage(err.message || "Erro ao salvar registro.", "error");
       } finally {
         btnSalvar.disabled = false;
+        setLoading(false);
       }
     }
 
@@ -1462,6 +1607,8 @@
         showMessage("Informe temporada, episódio e status.", "error");
         return;
       }
+
+      setLoading(true, episodioEmEdicao ? "Atualizando episódio..." : "Salvando episódio...");
 
       if (!episodioEmEdicao) {
         const { error } = await client.from(TABLE_EPISODIOS).insert({
@@ -1504,6 +1651,7 @@
           await carregarTudo();
         }
       }
+      setLoading(false);
     }
 
     episodioForm.addEventListener("submit", salvarEpisodio);
@@ -1597,17 +1745,21 @@
           return;
         }
 
+        setLoading(true, "Importando episódios...");
+
         const text = await readFileAsText(file);
         let data;
         try {
           data = JSON.parse(text);
         } catch (err) {
           showMessage("JSON inválido.", "error");
+          setLoading(false);
           return;
         }
 
         if (!Array.isArray(data)) {
           showMessage("O JSON deve ser um array de episódios.", "error");
+          setLoading(false);
           return;
         }
 
@@ -1661,6 +1813,7 @@
             "Nenhum episódio novo para importar (todos já existem ou foram ignorados).",
             "error"
           );
+          setLoading(false);
           return;
         }
 
@@ -1679,6 +1832,8 @@
       } catch (err) {
         console.error(err);
         showMessage("Erro ao importar episódios.", "error");
+      } finally {
+        setLoading(false);
       }
     });
 
@@ -1769,17 +1924,21 @@
           return;
         }
 
+        setLoading(true, "Importando mídias...");
+
         const text = await readFileAsText(file);
         let data;
         try {
           data = JSON.parse(text);
         } catch (err) {
           showMessage("JSON inválido.", "error");
+          setLoading(false);
           return;
         }
 
         if (!Array.isArray(data)) {
           showMessage("O JSON deve ser um array de mídias.", "error");
+          setLoading(false);
           return;
         }
 
@@ -1878,9 +2037,10 @@
 
         if (!toInsert.length) {
           showMessage(
-            "Nenhuma mídia novo para importar (todas existentes ou inválidas).",
+            "Nenhuma mídia nova para importar (todas existentes ou inválidas).",
             "error"
           );
+          setLoading(false);
           return;
         }
 
@@ -1899,12 +2059,15 @@
       } catch (err) {
         console.error(err);
         showMessage("Erro ao importar mídias.", "error");
+      } finally {
+        setLoading(false);
       }
     });
 
     // ======= CARREGAR TUDO =======
     async function carregarTudo() {
       listaMidias.textContent = "Carregando...";
+      setLoading(true, "Carregando sua coleção...");
 
       const { data: midiasData, error: midiasError } = await client
         .from(TABLE_MIDIAS)
@@ -1914,6 +2077,7 @@
       if (midiasError) {
         console.error(midiasError);
         showMessage("Erro ao carregar mídias.", "error", 6000);
+        setLoading(false);
         return;
       }
 
@@ -1926,6 +2090,7 @@
       if (epError) {
         console.error(epError);
         showMessage("Erro ao carregar episódios.", "error", 6000);
+        setLoading(false);
         return;
       }
 
@@ -1951,6 +2116,8 @@
           mostrarMainView();
         }
       }
+
+      setLoading(false);
     }
 
     // ======= FILTROS =======
@@ -2074,6 +2241,7 @@
       filtroGenero.value = "";
       filtroFranquia.value = "";
       abaStatus = "";
+      localStorage.setItem(LS_TAB_KEY, abaStatus);
       document.querySelectorAll(".tab-status").forEach((btn) => {
         btn.classList.toggle("tab-status-active", (btn.dataset.status || "") === "");
       });
@@ -2087,6 +2255,7 @@
     // ======= ABAS =======
     function selecionarAba(status) {
       abaStatus = status || "";
+      localStorage.setItem(LS_TAB_KEY, abaStatus);
       document.querySelectorAll(".tab-status").forEach((btn) => {
         const s = btn.dataset.status || "";
         btn.classList.toggle("tab-status-active", s === abaStatus);
@@ -2382,7 +2551,6 @@
         topsPanel.style.display = "none";
         return;
       }
-      // Só é exibido quando a view principal está ativa (controlado nas funções de view)
       top10BestList.innerHTML = "";
       top10WorstList.innerHTML = "";
       top10LastList.innerHTML = "";
@@ -2461,6 +2629,7 @@
     function aplicarFiltroFranquia(nomeFranquia) {
       filtroFranquia.value = nomeFranquia;
       abaStatus = "";
+      localStorage.setItem(LS_TAB_KEY, abaStatus);
       document.querySelectorAll(".tab-status").forEach((btn) => {
         const s = btn.dataset.status || "";
         btn.classList.toggle("tab-status-active", s === "");
@@ -2621,6 +2790,7 @@
       colecoesPanel.style.display = "block";
       gerirView.style.display = "none";
       episodiosView.style.display = "none";
+      document.title = "MediaVault – Minha coleção";
     }
 
     function mostrarGerirView() {
@@ -2629,6 +2799,7 @@
       colecoesPanel.style.display = "none";
       gerirView.style.display = "block";
       episodiosView.style.display = "none";
+      document.title = "MediaVault – Gerir coleção";
     }
 
     function mostrarEpisodiosView() {
@@ -2637,6 +2808,9 @@
       colecoesPanel.style.display = "none";
       gerirView.style.display = "none";
       episodiosView.style.display = "block";
+      document.title = `MediaVault – Episódios de ${
+        midiaAtualEpisodios?.nome || "série"
+      }`;
     }
 
     btnVoltar.addEventListener("click", () => {
@@ -2660,178 +2834,26 @@
       mostrarEpisodiosView();
     }
 
+    // ======= FILTROS DE EPISÓDIOS (eventos) =======
+    epFiltroTitulo.addEventListener("input", () => renderizarEpisodiosView());
+    epFiltroStatus.addEventListener("change", () => renderizarEpisodiosView());
+    epFiltroTemp.addEventListener("input", () => renderizarEpisodiosView());
+
     function renderizarEpisodiosView() {
       const midia = midiaAtualEpisodios;
       if (!midia) return;
-      const eps = episodiosPorMidia[midia.id] || [];
-      const temporadasSet = new Set(eps.map((e) => e.temporada));
-      const total = eps.length;
-      const assistidos = eps.filter((e) => e.status === "ASSISTIDOS").length;
-      const perc = total > 0 ? Math.round((assistidos / total) * 100) : 0;
+      let eps = episodiosPorMidia[midia.id] || [];
 
-      episodiosTituloBar.textContent = midia.nome
-        ? `Episódios de ${midia.nome}`
-        : "Episódios";
+      const filtroTitulo = epFiltroTitulo.value.trim().toLowerCase();
+      const filtroStatus = epFiltroStatus.value;
+      const filtroTemp = epFiltroTemp.value ? parseInt(epFiltroTemp.value) : null;
 
-      episodiosHeader.innerHTML = "";
-      if (midia.imagem_url) {
-        const img = document.createElement("img");
-        img.src = midia.imagem_url;
-        img.alt = midia.nome;
-        episodiosHeader.appendChild(img);
-      }
-
-      const info = document.createElement("div");
-      info.className = "episodios-header-info";
-
-      const titulo = document.createElement("div");
-      titulo.className = "episodios-header-titulo";
-      titulo.textContent = midia.nome;
-      info.appendChild(titulo);
-
-      const meta = document.createElement("div");
-      meta.className = "episodios-meta";
-      const partes = [];
-      partes.push(midia.tipo === "SERIE" ? "SÉRIE" : "FILME");
-      if (midia.ano) partes.push(`• ${midia.ano}`);
-      if (midia.streaming) partes.push(`• ${midia.streaming}`);
-      if (midia.franquia) partes.push(`• Franquia: ${midia.franquia}`);
-      meta.textContent = partes.join(" ");
-      info.appendChild(meta);
-
-      const resumo = document.createElement("div");
-      resumo.className = "episodios-resumo";
-      resumo.innerHTML = `Temporadas: <strong>${
-        temporadasSet.size || 0
-      }</strong> • Episódios: <strong>${total}</strong> • Progresso: <strong>${assistidos}/${total} (${perc}%)</strong>`;
-      info.appendChild(resumo);
-
-      const starsVal = sanitizeRating(midia.avaliacao);
-      if (starsVal !== null) {
-        const av = document.createElement("div");
-        av.className = "episodios-resumo";
-        av.innerHTML = `Avaliação geral: <span class="stars-display">${renderStars(
-          starsVal
-        )}</span> (${formatRating(starsVal)}/5)`;
-        info.appendChild(av);
-      }
-
-      episodiosHeader.appendChild(info);
-
-      epStatusSelect.value = midia.status || "ASSISTINDO";
-
-      episodiosList.innerHTML = "";
-      if (!eps.length) {
-        const vazio = document.createElement("div");
-        vazio.className = "episodios-list-vazia";
-        vazio.textContent = "Nenhum episódio cadastrado ainda.";
-        episodiosList.appendChild(vazio);
-      } else {
-        const porTemp = {};
-        eps.forEach((ep) => {
-          if (!porTemp[ep.temporada]) porTemp[ep.temporada] = [];
-          porTemp[ep.temporada].push(ep);
-        });
-
-        const grupos = [
-          { status: "ASSISTINDO", label: "Assistindo" },
-          { status: "ASSISTIDOS", label: "Assistidos" },
-          { status: "NAO_COMECEI", label: "Ainda não comecei" },
-        ];
-
-        Object.keys(porTemp)
-          .sort((a, b) => parseInt(a) - parseInt(b))
-          .forEach((temp) => {
-            const bloco = document.createElement("div");
-            bloco.className = "temporada-bloco";
-
-            const t = document.createElement("div");
-            t.className = "temporada-titulo";
-            t.textContent = `Temporada ${temp}`;
-            bloco.appendChild(t);
-
-            grupos.forEach((g) => {
-              const epsGrupo = porTemp[temp]
-                .filter((ep) => ep.status === g.status)
-                .sort((a, b) => a.numero - b.numero);
-
-              if (!epsGrupo.length) return;
-
-              const headerStatus = document.createElement("div");
-              headerStatus.className = "episodios-status-header";
-              headerStatus.textContent = g.label;
-              bloco.appendChild(headerStatus);
-
-              epsGrupo.forEach((ep) => {
-                const item = document.createElement("div");
-                item.className = "episodio-item";
-
-                const topline = document.createElement("div");
-                topline.className = "episodio-topline";
-
-                const infoEp = document.createElement("div");
-                infoEp.className = "episodio-info";
-
-                const codigo = `T${String(ep.temporada).padStart(2, "0")}E${String(
-                  ep.numero
-                ).padStart(2, "0")}`;
-
-                let text = `${codigo}`;
-                if (ep.titulo) text += ` – ${ep.titulo}`;
-
-                const epStarsVal = sanitizeRating(ep.avaliacao);
-                if (epStarsVal !== null) {
-                  text += ` • Nota: ${renderStars(epStarsVal)} (${formatRating(
-                    epStarsVal
-                  )}/5)`;
-                }
-
-                infoEp.textContent = text;
-
-                const acao = document.createElement("div");
-                acao.className = "episodio-acao";
-
-                const btnEditEp = document.createElement("button");
-                btnEditEp.type = "button";
-                btnEditEp.className = "btn btn-outline";
-                btnEditEp.style.fontSize = "0.72rem";
-                btnEditEp.innerHTML = "Editar";
-                btnEditEp.addEventListener("click", () => entrarModoEdicaoEp(ep));
-                acao.appendChild(btnEditEp);
-
-                const btnDel = document.createElement("button");
-                btnDel.type = "button";
-                btnDel.className = "btn btn-danger";
-                btnDel.style.fontSize = "0.72rem";
-                btnDel.textContent = "Excluir";
-                btnDel.addEventListener("click", () => excluirEpisodio(ep));
-                acao.appendChild(btnDel);
-
-                topline.appendChild(infoEp);
-                topline.appendChild(acao);
-                item.appendChild(topline);
-
-                if (ep.resumo) {
-                  const resumoEp = document.createElement("div");
-                  resumoEp.className = "episodio-resumo";
-                  resumoEp.textContent = ep.resumo;
-                  item.appendChild(resumoEp);
-                }
-
-                bloco.appendChild(item);
-              });
-            });
-
-            episodiosList.appendChild(bloco);
-          });
-      }
-    }
-
-    // ======= INICIALIZAÇÃO =======
-    updateMidiaStarsDisplay();
-    updateEpStarsDisplay();
-    mostrarMainView();
-    carregarTudo();
-  </script>
-</body>
-</html>
+      eps = eps.filter((ep) => {
+        if (filtroStatus && ep.status !== filtroStatus) return false;
+        if (filtroTemp && ep.temporada !== filtroTemp) return false;
+        if (filtroTitulo) {
+          const codigo = `t${String(ep.temporada).padStart(2, "0")}e${String(
+            ep.numero
+          ).padStart(2, "0")}`.toLowerCase();
+          const titulo = (ep.titulo || "").toLowerCase();
+          if (!codigo.includes(filtroTitulo) &&
