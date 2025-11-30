@@ -841,7 +841,7 @@
           <div id="lista-midias" class="cards-container"></div>
         </div>
 
-        <!-- TOP LISTAS -->
+        <!-- TOP LISTAS – SÓ NA PÁGINA PRINCIPAL -->
         <div id="tops-panel" class="panel">
           <div class="panel-header">
             <div class="panel-title">
@@ -865,7 +865,7 @@
           </div>
         </div>
 
-        <!-- COLEÇÕES DE FRANQUIAS -->
+        <!-- COLEÇÕES DE FRANQUIAS – SÓ NA PÁGINA PRINCIPAL -->
         <div id="colecoes-panel" class="panel">
           <div class="panel-header">
             <div class="panel-title">
@@ -1213,6 +1213,7 @@
       return status;
     }
 
+    // Normaliza rating 0–5 (aceita decimais), força 0.5 em 0.5. 0 => null.
     function sanitizeRating(raw) {
       if (raw === null || raw === undefined || raw === "") return null;
       let v = Number(raw);
@@ -1266,6 +1267,34 @@
         anoInput.value = y;
       }
     });
+
+    // Normaliza status vindo do JSON de episódios (aceita "AINDA NÃO COMECEI" etc.)
+    function mapStatusImportEp(raw) {
+      if (raw === null || raw === undefined || raw === "") {
+        return "NAO_COMECEI";
+      }
+
+      let s = raw.toString().trim();
+      let normalized = s
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toUpperCase(); // AINDA NAO COMECEI, ASSISTIDO, etc.
+
+      if (normalized === "ASSISTINDO") return "ASSISTINDO";
+      if (normalized === "ASSISTIDOS" || normalized === "ASSISTIDO") return "ASSISTIDOS";
+
+      if (
+        normalized.includes("AINDA") &&
+        normalized.includes("NAO") &&
+        normalized.includes("COMECEI")
+      ) {
+        return "NAO_COMECEI";
+      }
+
+      if (normalized === "NAO_COMECEI") return "NAO_COMECEI";
+
+      return "NAO_COMECEI";
+    }
 
     function clearForm() {
       form.reset();
@@ -1426,7 +1455,7 @@
       const numero = epNumInput.value ? parseInt(epNumInput.value) : null;
       const titulo = epTituloInput.value.trim() || null;
       const resumo = epResumoInput.value.trim() || null;
-      const status = epStatusSelect.value;
+      const status = mapStatusImportEp(epStatusSelect.value);
       const avaliacao = sanitizeRating(epAvalInput.value);
 
       if (!temporada || !numero || !status) {
@@ -1555,6 +1584,7 @@
       URL.revokeObjectURL(url);
     });
 
+    // IMPORTADOR DE EPISÓDIOS – ACEITA "AINDA NÃO COMECEI" DO JSON
     btnImportEp.addEventListener("click", async () => {
       try {
         if (!midiaAtualEpisodios) {
@@ -1600,19 +1630,11 @@
             item.resumo && String(item.resumo).trim()
               ? String(item.resumo).trim()
               : null;
-          const status = (item.status || "NAO_COMECEI").toUpperCase();
+
+          const status = mapStatusImportEp(item.status);
           const avaliacao = sanitizeRating(item.avaliacao);
 
           if (!temporada || !numero) {
-            ignorados++;
-            continue;
-          }
-
-          if (
-            status !== "ASSISTINDO" &&
-            status !== "ASSISTIDOS" &&
-            status !== "NAO_COMECEI"
-          ) {
             ignorados++;
             continue;
           }
@@ -1636,7 +1658,7 @@
 
         if (!toInsert.length) {
           showMessage(
-            "Nenhum episódio novo para importar (todos existentes ou inválidos).",
+            "Nenhum episódio novo para importar (todos já existem ou foram ignorados).",
             "error"
           );
           return;
@@ -1856,7 +1878,7 @@
 
         if (!toInsert.length) {
           showMessage(
-            "Nenhuma mídia nova para importar (todas existentes ou inválidas).",
+            "Nenhuma mídia novo para importar (todas existentes ou inválidas).",
             "error"
           );
           return;
@@ -2360,8 +2382,7 @@
         topsPanel.style.display = "none";
         return;
       }
-      topsPanel.style.display = "block";
-
+      // Só é exibido quando a view principal está ativa (controlado nas funções de view)
       top10BestList.innerHTML = "";
       top10WorstList.innerHTML = "";
       top10LastList.innerHTML = "";
@@ -2439,14 +2460,12 @@
     // ======= COLEÇÕES DE FRANQUIAS =======
     function aplicarFiltroFranquia(nomeFranquia) {
       filtroFranquia.value = nomeFranquia;
-      // limpa aba de status para mostrar todos daquela franquia
       abaStatus = "";
       document.querySelectorAll(".tab-status").forEach((btn) => {
         const s = btn.dataset.status || "";
         btn.classList.toggle("tab-status-active", s === "");
       });
       aplicarFiltros();
-      // garante que o usuário veja a lista principal
       mostrarMainView();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -2497,7 +2516,6 @@
           }
           card.appendChild(meta);
 
-          // separa por tipo
           const filmes = lista.filter((m) => m.tipo === "FILME");
           const series = lista.filter((m) => m.tipo === "SERIE");
 
@@ -2589,7 +2607,6 @@
             card.appendChild(listagemS);
           }
 
-          // clique no título também filtra
           title.style.cursor = "pointer";
           title.addEventListener("click", () => aplicarFiltroFranquia(nomeFranquia));
 
@@ -2597,7 +2614,7 @@
         });
     }
 
-    // ======= VIEWS =======
+    // ======= VIEWS (controle de onde os destaques aparecem) =======
     function mostrarMainView() {
       mainView.style.display = "block";
       topsPanel.style.display = "block";
