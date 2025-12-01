@@ -167,6 +167,7 @@ function renderStars(rating) {
   const full = Math.floor(num);
   const half = num - full >= 0.5 ? 1 : 0;
   const empty = 5 - full - half;
+  if (empty < 0) return "☆☆☆☆☆";
   return "★".repeat(full) + (half ? "⯨" : "") + "☆".repeat(empty);
 }
 
@@ -181,13 +182,6 @@ function statusLabel(status) {
     default:
       return status || "";
   }
-}
-
-function formatDateStr(dateStr) {
-  if (!dateStr) return "";
-  const d = new Date(dateStr);
-  if (Number.isNaN(d.getTime())) return dateStr;
-  return d.toLocaleDateString("pt-BR");
 }
 
 function toEpisodeCode(temp, num) {
@@ -210,7 +204,7 @@ function initInteractiveRating(starsEl, inputEl) {
     const rect = starsEl.getBoundingClientRect();
     const x = ev.clientX - rect.left;
     const ratio = x / rect.width;
-    let rating = Math.round(ratio * 10) / 2; // 0..5 em passos de 0.5
+    let rating = Math.round(ratio * 10) / 2; // 0..5 passos 0.5
     rating = Math.max(0, Math.min(5, rating));
     inputEl.value = rating.toFixed(1).replace(".0", "");
     updateFromInput();
@@ -259,6 +253,7 @@ async function carregarMidias() {
   popularFiltrosComBaseNasMidias();
   renderizarDashboard();
   aplicarFiltrosEAtualizar();
+  renderizarTabelaGerir();
 }
 
 // ==================== FILTROS ====================
@@ -385,7 +380,6 @@ function renderizarFranquias() {
     const filmes = midias.filter((m) => m.tipo === "FILME");
     const series = midias.filter((m) => m.tipo === "SERIE");
 
-    // Aplica filtro por tipo (filmes/séries/todos)
     let colecaoConsiderada = midias;
     if (tipoFiltroFranquiaSubtab === "FILME") colecaoConsiderada = filmes;
     if (tipoFiltroFranquiaSubtab === "SERIE") colecaoConsiderada = series;
@@ -398,9 +392,9 @@ function renderizarFranquias() {
     const postersRow = document.createElement("div");
     postersRow.className = "franquia-poster-row";
 
+    // agora mostra TODOS os pôsteres com URL
     colecaoConsiderada
       .filter((m) => m.imagem_url)
-      .slice(0, 5)
       .forEach((m) => {
         const img = document.createElement("img");
         img.src = m.imagem_url;
@@ -416,7 +410,6 @@ function renderizarFranquias() {
     card.appendChild(title);
 
     card.addEventListener("click", () => {
-      // Filtra a lista principal apenas por esta franquia
       filtroFranquiaSelecionada = nomeFranquia;
       filtroFranquia.value = nomeFranquia;
       aplicarFiltrosEAtualizar();
@@ -563,6 +556,7 @@ function criarCardMidia(midia) {
   rightFooter.style.display = "flex";
   rightFooter.style.alignItems = "center";
   rightFooter.style.gap = "6px";
+  rightFooter.style.flexWrap = "wrap";
 
   const starsSpan = document.createElement("span");
   starsSpan.className = "card-stars";
@@ -938,17 +932,13 @@ async function selecionarTmdbResultado(item) {
 
     const det = await resp.json();
 
-    // Tipo
     tipoSelect.value = tipo;
 
-    // Nome
     const titulo = det.title || det.name || item.title || item.name || "";
     nomeInput.value = titulo;
 
-    // SINOPSE
     sinopseInput.value = det.overview || "";
 
-    // Data / ano
     const dataLanc = det.release_date || det.first_air_date || "";
     dataLancInput.value = dataLanc || "";
     if (dataLanc) {
@@ -958,12 +948,10 @@ async function selecionarTmdbResultado(item) {
       anoInput.value = "";
     }
 
-    // Gênero
     if (Array.isArray(det.genres) && det.genres.length) {
       generoInput.value = det.genres.map((g) => g.name).join(" / ");
     }
 
-    // Diretor / Criador
     let diretores = "";
     if (isMovie && det.credits && Array.isArray(det.credits.crew)) {
       const dirs = det.credits.crew.filter((p) => p.job === "Director");
@@ -973,17 +961,14 @@ async function selecionarTmdbResultado(item) {
     }
     diretorInput.value = diretores || diretorInput.value;
 
-    // Pôster
     if (det.poster_path) {
       imagemUrlInput.value = TMDB_IMG_BASE + det.poster_path;
     }
 
-    // Franquia (filme)
     if (isMovie && det.belongs_to_collection && det.belongs_to_collection.name) {
       franquiaInput.value = det.belongs_to_collection.name;
     }
 
-    // Número de temporadas / episódios (séries)
     if (!isMovie) {
       numTemporadasInput.value =
         det.number_of_seasons !== undefined && det.number_of_seasons !== null
@@ -998,10 +983,8 @@ async function selecionarTmdbResultado(item) {
       numEpisodiosInput.value = "";
     }
 
-    // TMDb ID
     tmdbIdInput.value = det.id || item.id || "";
 
-    // Zera avaliação local (você avalia depois)
     avaliacaoInput.value = "";
     midiaRatingStars.textContent = "☆☆☆☆☆";
 
@@ -1346,16 +1329,16 @@ function renderizarEpisodios() {
     const left = document.createElement("div");
     left.innerHTML = `<div class="temporada-title">Temporada ${t}</div>`;
 
-    const episódiosTempTotal = eps.length;
+    const episodiosTempTotal = eps.length;
     const epsAssistidos = eps.filter((e) => e.status === "ASSISTIDOS").length;
     const percTemp =
-      episódiosTempTotal > 0
-        ? Math.round((epsAssistidos / episódiosTempTotal) * 100)
+      episodiosTempTotal > 0
+        ? Math.round((epsAssistidos / episodiosTempTotal) * 100)
         : 0;
 
     const right = document.createElement("div");
     right.className = "temporada-sub";
-    right.textContent = `${epsAssistidos}/${episódiosTempTotal} episódios assistidos (${percTemp}%)`;
+    right.textContent = `${epsAssistidos}/${episodiosTempTotal} episódios assistidos (${percTemp}%)`;
 
     header.appendChild(left);
     header.appendChild(right);
@@ -1732,7 +1715,6 @@ function initEvents() {
 async function init() {
   initEvents();
   await carregarMidias();
-  renderizarTabelaGerir();
 }
 
 init();
