@@ -14,7 +14,9 @@
   --shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.08);
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -49,7 +51,11 @@ body {
   gap: 12px;
 }
 
-.logo-area { display: flex; align-items: center; gap: 10px; }
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
 .logo-circle {
   width: 32px;
@@ -65,9 +71,18 @@ body {
   box-shadow: 0 10px 25px rgba(79, 70, 229, 0.5);
 }
 
-.logo-text { display: flex; flex-direction: column; }
-.logo-text-title { font-weight: 600; font-size: 1.05rem; }
-.logo-text-sub { font-size: 0.78rem; color: var(--text-soft); }
+.logo-text {
+  display: flex;
+  flex-direction: column;
+}
+.logo-text-title {
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+.logo-text-sub {
+  font-size: 0.78rem;
+  color: var(--text-soft);
+}
 
 .topbar-actions {
   display: flex;
@@ -110,7 +125,10 @@ body {
   gap: 6px;
   transition: all 0.18s ease-out;
 }
-.btn span { position: relative; top: 1px; }
+.btn span {
+  position: relative;
+  top: 1px;
+}
 
 .btn-primary {
   background: var(--primary);
@@ -129,14 +147,18 @@ body {
   border-color: rgba(148, 163, 184, 0.7);
   color: var(--text-soft);
 }
-.btn-outline:hover { background: #f3f4f6; }
+.btn-outline:hover {
+  background: #f3f4f6;
+}
 
 .btn-danger {
   background: #fef2f2;
   border-color: #fecaca;
   color: #b91c1c;
 }
-.btn-danger:hover { background: #fee2e2; }
+.btn-danger:hover {
+  background: #fee2e2;
+}
 
 .btn:disabled {
   opacity: 0.55;
@@ -145,7 +167,9 @@ body {
   transform: none;
 }
 
-main { flex: 1; }
+main {
+  flex: 1;
+}
 .main-inner {
   max-width: 1200px;
   margin: 0 auto;
@@ -198,7 +222,10 @@ main { flex: 1; }
   align-items: center;
   gap: 6px;
 }
-.panel-title span.icon { font-size: 1rem; opacity: 0.9; }
+.panel-title span.icon {
+  font-size: 1rem;
+  opacity: 0.9;
+}
 
 /* Forms */
 form {
@@ -249,7 +276,9 @@ textarea:focus {
 }
 
 input::placeholder,
-textarea::placeholder { color: rgba(148, 163, 184, 0.9); }
+textarea::placeholder {
+  color: rgba(148, 163, 184, 0.9);
+}
 
 /* Filtros */
 .filters-row {
@@ -259,8 +288,11 @@ textarea::placeholder { color: rgba(148, 163, 184, 0.9); }
   align-items: center;
   margin-top: 8px;
 }
-.filters-row .form-field { min-width: 150px; }
+.filters-row .form-field {
+  min-width: 150px;
+}
 
+/* Import mídias */
 .midias-import {
   margin-top: 10px;
   background: #f9fafb;
@@ -409,7 +441,9 @@ textarea::placeholder { color: rgba(148, 163, 184, 0.9); }
   font-size: 0.78rem;
   color: var(--text-soft);
 }
-.serie-resumo strong { color: var(--accent); }
+.serie-resumo strong {
+  color: var(--accent);
+}
 
 .meta-line {
   margin-top: 2px;
@@ -516,9 +550,14 @@ textarea::placeholder { color: rgba(148, 163, 184, 0.9); }
   gap: 2px;
 }
 
-.top10-row-title { font-weight: 600; }
+.top10-row-title {
+  font-weight: 600;
+}
 
-.top10-row-meta { font-size: 0.78rem; color: var(--text-soft); }
+.top10-row-meta {
+  font-size: 0.78rem;
+  color: var(--text-soft);
+}
 
 .top10-row-rating {
   font-size: 0.8rem;
@@ -598,7 +637,7 @@ textarea::placeholder { color: rgba(148, 163, 184, 0.9); }
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
 }
 
-/* EPISÓDIOS */
+/* EPISÓDIOS – CABEÇALHO E FORM */
 .top-bar-episodios {
   display: flex;
   justify-content: space-between;
@@ -630,7 +669,9 @@ textarea::placeholder { color: rgba(148, 163, 184, 0.9); }
   background: #e5e7eb;
 }
 
-.episodios-header-info { flex: 1; }
+.episodios-header-info {
+  flex: 1;
+}
 
 .episodios-header-titulo {
   font-size: 1.05rem;
@@ -638,14 +679,19 @@ textarea::placeholder { color: rgba(148, 163, 184, 0.9); }
   margin-bottom: 4px;
 }
 
-.episodios-meta { font-size: 0.8rem; color: var(--text-soft); }
+.episodios-meta {
+  font-size: 0.8rem;
+  color: var(--text-soft);
+}
 
 .episodios-resumo {
   font-size: 0.86rem;
   color: var(--text-soft);
   margin-top: 4px;
 }
-.episodios-resumo strong { color: var(--accent); }
+.episodios-resumo strong {
+  color: var(--accent);
+}
 
 .episodios-filtros {
   display: flex;
@@ -654,7 +700,9 @@ textarea::placeholder { color: rgba(148, 163, 184, 0.9); }
   margin-bottom: 10px;
 }
 
-.episodios-form { margin-bottom: 12px; }
+.episodios-form {
+  margin-bottom: 12px;
+}
 
 .episodios-import {
   margin-bottom: 12px;
@@ -674,6 +722,7 @@ textarea::placeholder { color: rgba(148, 163, 184, 0.9); }
   color: var(--text-soft);
 }
 
+/* EPISÓDIOS – LISTA (AGORA MAIS SEPARADA) */
 .episodios-list {
   background: #ffffff;
   padding: 12px;
@@ -684,9 +733,12 @@ textarea::placeholder { color: rgba(148, 163, 184, 0.9); }
   overflow-y: auto;
 }
 
-.episodios-list-vazia { color: var(--text-soft); font-size: 0.82rem; }
+.episodios-list-vazia {
+  color: var(--text-soft);
+  font-size: 0.82rem;
+}
 
-/* Cada temporada em um card separado */
+/* Cada temporada é um "card" separado */
 .temporada-bloco {
   margin-bottom: 12px;
   padding: 10px 10px 8px;
@@ -696,7 +748,7 @@ textarea::placeholder { color: rgba(148, 163, 184, 0.9); }
   box-shadow: 0 4px 10px rgba(148, 163, 184, 0.2);
 }
 
-/* Título da temporada bem evidente */
+/* Título da temporada */
 .temporada-titulo {
   font-weight: 700;
   margin-bottom: 6px;
@@ -706,7 +758,7 @@ textarea::placeholder { color: rgba(148, 163, 184, 0.9); }
   padding-bottom: 4px;
 }
 
-/* Cabeçalho de status (faixa colorida) */
+/* Cabeçalho de status (Assistindo/Assistidos/Ainda não comecei) */
 .episodios-status-header {
   font-size: 0.78rem;
   font-weight: 600;
@@ -754,12 +806,13 @@ textarea::placeholder { color: rgba(148, 163, 184, 0.9); }
   background: #f59e0b;
 }
 
-/* Episódio com separador */
+/* Episódio com divisória */
 .episodio-item {
   margin-bottom: 6px;
   padding: 6px 0;
   border-bottom: 1px dashed #e5e7eb;
 }
+
 .episodio-item:last-child {
   border-bottom: none;
 }
