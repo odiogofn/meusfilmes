@@ -1,543 +1,400 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Minha Coleção de Mídias</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="styles.css" />
-
-    <!-- Supabase JS -->
-    <script
-      src="https://unpkg.com/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"
-      defer
-    ></script>
-
-    <!-- App JS -->
-    <script src="app.js" defer></script>
-  </head>
-  <body>
+<head>
+  <meta charset="UTF-8" />
+  <title>Minha Coleção de Filmes & Séries</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-container">
     <header class="app-header">
-      <div class="logo-title">
-        <h1>🎬 Minha Coleção</h1>
-        <span class="subtitle">Filmes & Séries com TMDb + Supabase</span>
+      <div>
+        <h1>🎬 Minha Coleção de Filmes & Séries</h1>
+        <p class="subtitle">Controle o que você assiste, com notas, franquias e episódios.</p>
       </div>
-
-      <nav class="main-nav">
-        <button class="nav-btn active" data-view="principal">
-          Página Principal
-        </button>
-        <button class="nav-btn" data-view="gerir">Gerir Coleção</button>
-        <button class="nav-btn" data-view="episodios">Guia de Episódios</button>
+      <nav class="header-actions">
+        <button id="btn-ir-principal" class="btn secondary">Ir para aba Assistindo</button>
+        <button id="btn-ir-gerir" class="btn primary">Gerir Coleção</button>
       </nav>
     </header>
 
-    <main class="app-main">
-      <!-- MENSAGENS GLOBAIS -->
-      <div id="global-message" class="global-message" style="display: none"></div>
-
-      <!-- ===================== VIEW PRINCIPAL ===================== -->
-      <section id="view-principal" class="view active">
-        <!-- FILTROS E BUSCA -->
-        <section class="panel">
-          <h2>📺 Filtros & Busca</h2>
-          <div class="filters-grid">
-            <div class="form-field">
-              <label for="filtro-busca-nome">Buscar por nome</label>
-              <input
-                id="filtro-busca-nome"
-                type="text"
-                placeholder="Ex: Matrix, Lost..."
-              />
-            </div>
-
-            <div class="form-field">
-              <label for="filtro-nota-min">Nota mínima (estrelas)</label>
-              <input
-                id="filtro-nota-min"
-                type="number"
-                min="0"
-                max="5"
-                step="0.5"
-                placeholder="Ex: 3.5"
-              />
-            </div>
-
-            <div class="form-field">
-              <label for="filtro-streaming">Streaming</label>
-              <select id="filtro-streaming">
-                <option value="">Todos</option>
-              </select>
-            </div>
-
-            <div class="form-field">
-              <label for="filtro-ano">Ano</label>
-              <select id="filtro-ano">
-                <option value="">Todos</option>
-              </select>
-            </div>
-
-            <div class="form-field">
-              <label for="filtro-diretor">Diretor / Criador</label>
-              <select id="filtro-diretor">
-                <option value="">Todos</option>
-              </select>
-            </div>
-
-            <div class="form-field">
-              <label for="filtro-genero">Gênero</label>
-              <select id="filtro-genero">
-                <option value="">Todos</option>
-              </select>
-            </div>
-
-            <div class="form-field">
-              <label for="filtro-franquia">Franquia</label>
-              <select id="filtro-franquia">
-                <option value="">Todas</option>
-              </select>
-            </div>
-
-            <div class="form-field">
-              <label for="filtro-tipo">Tipo</label>
-              <select id="filtro-tipo">
-                <option value="">Filmes & Séries</option>
-                <option value="FILME">Só Filmes</option>
-                <option value="SERIE">Só Séries</option>
-              </select>
-            </div>
+    <!-- ===================== VIEW PRINCIPAL (LISTA / DASHBOARD) ===================== -->
+    <main id="view-principal" class="view active">
+      <section class="filters-card">
+        <h2>Filtrar mídias</h2>
+        <div class="filters-grid">
+          <div class="form-field">
+            <label for="filtro-busca-nome">Buscar por nome</label>
+            <input id="filtro-busca-nome" type="text" placeholder="Ex: Lost, Matrix..." />
           </div>
-
-          <div class="filters-actions">
-            <button id="btn-aplicar-filtros" class="btn primary">
-              Aplicar filtros
-            </button>
-            <button id="btn-limpar-filtros" class="btn ghost">
-              Limpar filtros
-            </button>
+          <div class="form-field">
+            <label for="filtro-nota-min">Nota mínima (⭐)</label>
+            <input id="filtro-nota-min" type="number" min="0" max="5" step="0.5" placeholder="Ex: 3.5" />
           </div>
-        </section>
-
-        <!-- ABAS DE STATUS -->
-        <section class="panel">
-          <div class="tabs-header">
-            <button
-              class="tab-btn active"
-              data-status-tab="ASSISTINDO"
-            >
-              ▶ Assistindo
-            </button>
-            <button class="tab-btn" data-status-tab="ASSISTIDOS">
-              ✅ Assistidos
-            </button>
-            <button
-              class="tab-btn"
-              data-status-tab="AINDA_NAO_COMECEI"
-            >
-              ⏳ Ainda não comecei
-            </button>
+          <div class="form-field">
+            <label for="filtro-streaming">Streaming</label>
+            <select id="filtro-streaming">
+              <option value="">Todos</option>
+            </select>
           </div>
-          <div id="lista-midias" class="cards-grid"></div>
-        </section>
-
-        <!-- DESTAQUES (SÓ AQUI NA PÁGINA PRINCIPAL) -->
-        <section class="panel">
-          <h2>⭐ Destaques da Seleção</h2>
-          <div class="highlights-grid">
-            <div class="highlight-block">
-              <h3>🎖 Top 10 mais bem avaliados</h3>
-              <ul id="lista-top-10-mais"></ul>
-            </div>
-            <div class="highlight-block">
-              <h3>⚠ Top 10 menos avaliados</h3>
-              <ul id="lista-top-10-menos"></ul>
-            </div>
-            <div class="highlight-block">
-              <h3>🆕 Últimos 10 adicionados</h3>
-              <ul id="lista-ultimos-10"></ul>
-            </div>
+          <div class="form-field">
+            <label for="filtro-ano">Ano</label>
+            <select id="filtro-ano">
+              <option value="">Todos</option>
+            </select>
           </div>
-        </section>
-
-        <!-- FRANQUIAS / COLEÇÕES -->
-        <section class="panel">
-          <h2>📚 Coleções de Franquias</h2>
-
-          <h3>🎬 Coleções de Filmes</h3>
-          <div id="franquias-filmes" class="franquias-grid"></div>
-
-          <h3>📺 Coleções de Séries</h3>
-          <div id="franquias-series" class="franquias-grid"></div>
-
-          <p class="hint">
-            Clique em um pôster para filtrar a lista principal pela franquia.
-          </p>
-        </section>
+          <div class="form-field">
+            <label for="filtro-genero">Gênero</label>
+            <select id="filtro-genero">
+              <option value="">Todos</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="filtro-diretor">Diretor / Criador</label>
+            <select id="filtro-diretor">
+              <option value="">Todos</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="filtro-franquia">Franquia</label>
+            <select id="filtro-franquia">
+              <option value="">Todas</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="filtro-tipo">Tipo</label>
+            <select id="filtro-tipo">
+              <option value="">Filmes e Séries</option>
+              <option value="FILME">Filmes</option>
+              <option value="SERIE">Séries</option>
+            </select>
+          </div>
+        </div>
       </section>
 
-      <!-- ===================== VIEW GERIR COLEÇÃO ===================== -->
-      <section id="view-gerir" class="view">
-        <section class="panel">
-          <div class="panel-header-inline">
-            <h2>🧩 Gerir Coleção de Mídias</h2>
-            <div>
-              <button id="btn-voltar-principal" class="btn ghost">
-                ⬅ Ir para Página Principal
-              </button>
-            </div>
-          </div>
-
-          <!-- BUSCA TMDB -->
-          <div class="tmdb-search">
-            <h3>🔎 Buscar dados na TMDb</h3>
-            <div class="tmdb-row">
-              <input
-                id="tmdb-query"
-                type="text"
-                placeholder="Digite o nome (ex: Matrix, Lost...)"
-              />
-              <button id="btn-tmdb-buscar" class="btn secondary">
-                Buscar TMDb
-              </button>
-            </div>
-            <div id="tmdb-resultados" class="tmdb-resultados"></div>
-          </div>
-
-          <!-- FORM DE MÍDIA -->
-          <form id="midia-form" class="midia-form">
-            <h3>📥 Cadastro / Edição de Mídia</h3>
-
-            <div class="form-grid-2">
-              <div class="form-field">
-                <label for="nome">Nome</label>
-                <input id="nome" type="text" required />
-              </div>
-
-              <div class="form-field">
-                <label for="tipo">Filme ou Série?</label>
-                <select id="tipo">
-                  <option value="FILME">Filme</option>
-                  <option value="SERIE">Série</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="form-field">
-              <label for="sinopse">Sinopse (da mídia)</label>
-              <textarea
-                id="sinopse"
-                rows="3"
-                placeholder="Sinopse do filme ou série"
-              ></textarea>
-            </div>
-
-            <div class="form-grid-2">
-              <div class="form-field">
-                <label for="diretor">Diretor(es) / Criador(es)</label>
-                <input
-                  id="diretor"
-                  type="text"
-                  placeholder="Diretor(es) ou criador(es)"
-                />
-              </div>
-
-              <div class="form-field">
-                <label for="genero">Gênero</label>
-                <input
-                  id="genero"
-                  type="text"
-                  placeholder="Ex: Drama / Sci-fi"
-                />
-              </div>
-            </div>
-
-            <div class="form-grid-3">
-              <div class="form-field">
-                <label for="data-lancamento">Data de lançamento</label>
-                <input id="data-lancamento" type="date" />
-              </div>
-
-              <div class="form-field">
-                <label for="ano">Ano</label>
-                <input
-                  id="ano"
-                  type="number"
-                  min="1900"
-                  max="2100"
-                  placeholder="Ex: 1999"
-                />
-              </div>
-
-              <div class="form-field">
-                <label for="streaming">Streaming</label>
-                <input
-                  id="streaming"
-                  type="text"
-                  placeholder="Ex: Netflix, Prime..."
-                />
-              </div>
-            </div>
-
-            <div class="form-grid-2">
-              <div class="form-field">
-                <label for="franquia">Franquia (coleção)</label>
-                <input
-                  id="franquia"
-                  type="text"
-                  placeholder="Ex: Matrix, Star Wars..."
-                />
-              </div>
-
-              <div class="form-field">
-                <label for="status">Status</label>
-                <select id="status">
-                  <option value="ASSISTINDO">Assistindo</option>
-                  <option value="ASSISTIDOS">Assistidos</option>
-                  <option value="AINDA_NAO_COMECEI">
-                    Ainda não comecei
-                  </option>
-                </select>
-              </div>
-            </div>
-
-            <div class="form-grid-2">
-              <div class="form-field">
-                <label for="numero-temporadas">
-                  Número de temporadas (séries)
-                </label>
-                <input
-                  id="numero-temporadas"
-                  type="number"
-                  min="0"
-                  placeholder="Ex: 6"
-                />
-              </div>
-
-              <div class="form-field">
-                <label for="numero-episodios">
-                  Número total de episódios (séries)
-                </label>
-                <input
-                  id="numero-episodios"
-                  type="number"
-                  min="0"
-                  placeholder="Ex: 121"
-                />
-              </div>
-            </div>
-
-            <div class="form-grid-2">
-              <div class="form-field">
-                <label for="imagem-url">URL do pôster</label>
-                <input
-                  id="imagem-url"
-                  type="url"
-                  placeholder="https://..."
-                />
-              </div>
-
-              <div class="form-field">
-                <label for="avaliacao">
-                  Avaliação (1 a 5 estrelas, aceita 0.5)
-                </label>
-                <div class="rating-wrapper">
-                  <input
-                    id="avaliacao"
-                    type="number"
-                    min="0"
-                    max="5"
-                    step="0.5"
-                    placeholder="Ex: 4.5"
-                  />
-                  <div id="midia-rating-stars" class="rating-stars">
-                    ☆☆☆☆☆
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <input id="tmdb-id" type="hidden" />
-
-            <div class="form-actions">
-              <button id="btn-salvar-midia" class="btn primary" type="submit">
-                <span>💾</span>
-                <span>Salvar</span>
-              </button>
-              <button
-                id="btn-cancelar-edicao-midia"
-                class="btn ghost"
-                type="button"
-                style="display: none"
-              >
-                Cancelar edição
-              </button>
-            </div>
-          </form>
-        </section>
-
-        <!-- LISTA DE MÍDIAS (GERIR) -->
-        <section class="panel">
-          <div class="panel-header-inline">
-            <h3>📂 Lista de Mídias (gerenciamento)</h3>
-            <div class="import-export-row">
-              <button id="btn-export-midias-modelo" class="btn ghost">
-                ⬇ Modelo JSON
-              </button>
-              <button id="btn-export-midias-json" class="btn secondary">
-                ⬇ Exportar mídias
-              </button>
-              <label class="btn file-btn">
-                ⬆ Importar mídias
-                <input
-                  id="input-import-midias"
-                  type="file"
-                  accept="application/json"
-                  hidden
-                />
-              </label>
-            </div>
-          </div>
-
-          <div id="lista-midias-gerir" class="midias-table"></div>
-        </section>
+      <section class="tabs-card">
+        <div class="tabs">
+          <button class="tab active" data-status="">Todos</button>
+          <button class="tab" data-status="ASSISTINDO">Assistindo</button>
+          <button class="tab" data-status="ASSISTIDOS">Assistidos</button>
+          <button class="tab" data-status="AINDA_NAO_COMECEI">Ainda não comecei</button>
+        </div>
       </section>
 
-      <!-- ===================== VIEW EPISÓDIOS ===================== -->
-      <section id="view-episodios" class="view">
-        <section class="panel">
-          <div class="panel-header-inline">
-            <h2>📒 Guia de Episódios</h2>
-            <button id="btn-voltar-principal-ep" class="btn ghost">
-              ⬅ Ir para Página Principal
-            </button>
+      <!-- Destaques só na página principal -->
+      <section class="highlights-grid">
+        <div class="highlight-box">
+          <h2>⭐ Top 10 mais bem avaliados</h2>
+          <ul id="lista-top-mais"></ul>
+        </div>
+        <div class="highlight-box">
+          <h2>⚠️ Top 10 menos avaliados</h2>
+          <ul id="lista-top-menos"></ul>
+        </div>
+        <div class="highlight-box">
+          <h2>🆕 Últimos 10 adicionados</h2>
+          <ul id="lista-top-recentes"></ul>
+        </div>
+      </section>
+
+      <!-- Coleções de franquias (posters clicáveis) -->
+      <section class="franquias-section">
+        <h2>Coleções de Franquias</h2>
+        <p class="small-note">
+          Clique em uma franquia para filtrar a lista principal apenas por ela.
+        </p>
+        <div class="franquias-subtabs">
+          <button class="subtab active" data-franquia-tipo="todos">Todas</button>
+          <button class="subtab" data-franquia-tipo="FILME">Filmes</button>
+          <button class="subtab" data-franquia-tipo="SERIE">Séries</button>
+        </div>
+        <div id="franquias-grid" class="franquias-grid"></div>
+      </section>
+
+      <section class="cards-section">
+        <h2>Minha lista</h2>
+        <div id="midias-list" class="cards-grid"></div>
+      </section>
+    </main>
+
+    <!-- ===================== VIEW GERIR COLEÇÃO ===================== -->
+    <main id="view-gerir" class="view">
+      <section class="panel">
+        <header class="panel-header">
+          <div>
+            <h2>Gerir Coleção</h2>
+            <p>Cadastre e edite filmes e séries. Episódios são geridos em outra tela.</p>
+          </div>
+          <button id="btn-voltar-principal" class="btn secondary">Voltar para Assistindo</button>
+        </header>
+
+        <form id="midia-form" class="form-grid">
+          <div class="form-field full">
+            <label for="nome">Nome da mídia</label>
+            <input id="nome" type="text" placeholder="Ex: Lost, Matrix..." required />
+          </div>
+
+          <div class="form-field full">
+            <label for="sinopse">Sinopse (descrição da mídia)</label>
+            <textarea id="sinopse" rows="3" placeholder="Sinopse do filme ou série"></textarea>
           </div>
 
           <div class="form-field">
-            <label for="select-serie-episodios">
-              Escolha uma série para gerenciar os episódios
-            </label>
-            <select id="select-serie-episodios">
-              <option value="">Selecione uma série</option>
+            <label for="diretor">Diretor(es) / Criador(es)</label>
+            <input id="diretor" type="text" placeholder="Ex: Wachowski, Damon Lindelof..." />
+          </div>
+
+          <div class="form-field">
+            <label for="genero">Gênero</label>
+            <input id="genero" type="text" placeholder="Ex: Ação / Drama / Sci-fi..." />
+          </div>
+
+          <div class="form-field">
+            <label for="data-lancamento">Data de lançamento</label>
+            <input id="data-lancamento" type="date" />
+          </div>
+
+          <div class="form-field">
+            <label for="ano">Ano de lançamento</label>
+            <input id="ano" type="number" min="1900" max="2100" placeholder="Ex: 2025" />
+          </div>
+
+          <div class="form-field">
+            <label for="streaming">Streaming</label>
+            <input id="streaming" type="text" placeholder="Ex: Netflix, Prime Video..." />
+          </div>
+
+          <div class="form-field">
+            <label for="tipo">Tipo</label>
+            <select id="tipo" required>
+              <option value="">Selecione...</option>
+              <option value="FILME">Filme</option>
+              <option value="SERIE">Série</option>
             </select>
           </div>
 
-          <div id="resumo-serie-episodios" class="serie-resumo-box"></div>
+          <div class="form-field">
+            <label for="numero-temporadas">Número de temporadas (séries)</label>
+            <input id="numero-temporadas" type="number" min="0" placeholder="Ex: 6" />
+          </div>
 
-          <!-- IMPORT / EXPORT EPISÓDIOS -->
-          <div class="import-export-row">
-            <button id="btn-export-episodios-modelo" class="btn ghost">
-              ⬇ Modelo JSON Episódios
+          <div class="form-field">
+            <label for="numero-episodios">Número de episódios (séries)</label>
+            <input id="numero-episodios" type="number" min="0" placeholder="Ex: 121" />
+          </div>
+
+          <div class="form-field">
+            <label for="franquia">Franquia / Coleção</label>
+            <input id="franquia" type="text" placeholder="Ex: Matrix, Star Wars..." />
+          </div>
+
+          <div class="form-field">
+            <label for="status">Status</label>
+            <select id="status">
+              <option value="ASSISTINDO">Assistindo</option>
+              <option value="ASSISTIDOS">Assistidos</option>
+              <option value="AINDA_NAO_COMECEI">Ainda não comecei</option>
+            </select>
+          </div>
+
+          <div class="form-field full">
+            <label>Avaliação (1 a 5 estrelas, com meia estrela)</label>
+            <div class="rating-control">
+              <div id="midia-rating-stars" class="rating-stars">☆☆☆☆☆</div>
+              <input id="avaliacao" type="number" min="0" max="5" step="0.5" placeholder="Ex: 4.5" />
+            </div>
+          </div>
+
+          <div class="form-field full">
+            <label for="imagem-url">URL do pôster</label>
+            <input id="imagem-url" type="url" placeholder="https://.../poster.jpg" />
+          </div>
+
+          <!-- Campo oculto para TMDb ID -->
+          <input id="tmdb-id" type="hidden" />
+
+          <div class="form-actions full">
+            <button id="btn-salvar-midia" type="submit" class="btn primary">
+              <span>💾</span> <span>Salvar</span>
             </button>
-            <button id="btn-export-episodios-json" class="btn secondary">
-              ⬇ Exportar episódios
+            <button id="btn-cancelar-edicao-midia" type="button" class="btn ghost" style="display:none;">
+              Cancelar edição
             </button>
-            <label class="btn file-btn">
-              ⬆ Importar episódios
-              <input
-                id="input-import-episodios"
-                type="file"
-                accept="application/json"
-                hidden
-              />
+          </div>
+        </form>
+      </section>
+
+      <section class="panel">
+        <header class="panel-header">
+          <div>
+            <h2>Buscar na TMDb</h2>
+            <p>Preencha automaticamente os dados usando a API da TMDb.</p>
+          </div>
+        </header>
+        <div class="tmdb-search">
+          <div class="form-field">
+            <label for="tmdb-query">Buscar título na TMDb</label>
+            <input id="tmdb-query" type="text" placeholder="Ex: Matrix, Lost..." />
+          </div>
+          <button id="btn-tmdb-buscar" class="btn secondary">Buscar</button>
+        </div>
+        <div id="tmdb-resultados" class="tmdb-resultados"></div>
+      </section>
+
+      <section class="panel">
+        <header class="panel-header">
+          <div>
+            <h2>Importar / Exportar coleção (JSON)</h2>
+            <p>Faça backup ou carregue mídias em massa.</p>
+          </div>
+        </header>
+        <div class="import-export-row">
+          <div>
+            <button id="btn-export-midias" class="btn secondary">Exportar mídias (JSON)</button>
+            <button id="btn-export-modelo-midias" class="btn ghost">Baixar modelo de JSON</button>
+          </div>
+          <div class="import-group">
+            <input id="input-import-midias" type="file" accept="application/json" />
+            <button id="btn-import-midias" class="btn primary">Importar JSON</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <header class="panel-header">
+          <div>
+            <h2>Lista de mídias (para gerenciamento)</h2>
+            <p>Edite ou exclua itens da coleção.</p>
+          </div>
+        </header>
+        <div class="table-wrapper">
+          <table class="midias-table">
+            <thead>
+              <tr>
+                <th>Pôster</th>
+                <th>Nome</th>
+                <th>Tipo</th>
+                <th>Streaming</th>
+                <th>Status</th>
+                <th>Nota</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-gerir-midias"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <!-- ===================== VIEW EPISÓDIOS ===================== -->
+    <main id="view-episodios" class="view">
+      <section class="panel">
+        <header class="panel-header">
+          <div>
+            <h2 id="episodios-titulo">Guia de episódios</h2>
+            <p id="episodios-subtitulo" class="small-note"></p>
+          </div>
+          <button id="btn-voltar-principal-de-episodios" class="btn secondary">
+            ← Voltar para Assistindo
+          </button>
+        </header>
+
+        <div id="episodios-resumo" class="episodios-resumo"></div>
+
+        <div class="filters-grid">
+          <div class="form-field">
+            <label for="filtro-episodio-temporada">Temporada</label>
+            <select id="filtro-episodio-temporada">
+              <option value="">Todas</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="filtro-episodio-status">Status</label>
+            <select id="filtro-episodio-status">
+              <option value="">Todos</option>
+              <option value="ASSISTINDO">Assistindo</option>
+              <option value="ASSISTIDOS">Assistidos</option>
+              <option value="AINDA_NAO_COMECEI">Ainda não comecei</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <header class="panel-header">
+          <div>
+            <h2>Episódios por temporada</h2>
+            <p>Clique para editar ou cadastrar novos episódios.</p>
+          </div>
+          <div class="panel-header-actions">
+            <button id="btn-novo-episodio" class="btn primary">+ Novo episódio</button>
+            <button id="btn-export-episodios" class="btn secondary">Exportar episódios (JSON)</button>
+            <label class="btn ghost file-label">
+              Importar JSON
+              <input id="input-import-episodios" type="file" accept="application/json" hidden />
             </label>
           </div>
-        </section>
+        </header>
+        <div id="episodios-container" class="episodios-container"></div>
+      </section>
 
-        <!-- FORM EPISÓDIO -->
-        <section class="panel">
-          <form id="episodio-form" class="episodio-form">
-            <h3>➕ Cadastro / Edição de Episódio</h3>
-
-            <div class="form-grid-3">
+      <!-- Modal de episódio -->
+      <div id="episodio-modal-backdrop" class="modal-backdrop hidden">
+        <div class="modal">
+          <header class="modal-header">
+            <h3 id="episodio-modal-titulo">Novo episódio</h3>
+          </header>
+          <div class="modal-body">
+            <form id="episodio-form" class="form-grid">
               <div class="form-field">
                 <label for="episodio-temporada">Temporada</label>
-                <input
-                  id="episodio-temporada"
-                  type="number"
-                  min="1"
-                  placeholder="1"
-                />
+                <input id="episodio-temporada" type="number" min="1" required />
               </div>
-
               <div class="form-field">
-                <label for="episodio-numero">Episódio (T00E00)</label>
-                <input
-                  id="episodio-numero"
-                  type="text"
-                  placeholder="T01E01"
-                />
+                <label for="episodio-numero">Número do episódio</label>
+                <input id="episodio-numero" type="number" min="1" required />
               </div>
-
+              <div class="form-field full">
+                <label for="episodio-titulo">Título</label>
+                <input id="episodio-titulo" type="text" placeholder="Título do episódio" />
+              </div>
+              <div class="form-field full">
+                <label for="episodio-resumo">Resumo do episódio</label>
+                <textarea id="episodio-resumo" rows="3" placeholder="Resumo / sinopse do episódio"></textarea>
+              </div>
               <div class="form-field">
                 <label for="episodio-status">Status</label>
                 <select id="episodio-status">
-                  <option value="AINDA_NAO_COMECEI">
-                    Ainda não comecei
-                  </option>
+                  <option value="AINDA_NAO_COMECEI">Ainda não comecei</option>
                   <option value="ASSISTINDO">Assistindo</option>
                   <option value="ASSISTIDOS">Assistidos</option>
                 </select>
               </div>
-            </div>
-
-            <div class="form-field">
-              <label for="episodio-titulo">Título do episódio</label>
-              <input
-                id="episodio-titulo"
-                type="text"
-                placeholder="Nome do episódio"
-              />
-            </div>
-
-            <div class="form-field">
-              <label for="episodio-resumo">Resumo do episódio</label>
-              <textarea
-                id="episodio-resumo"
-                rows="3"
-                placeholder="Resumo / sinopse do episódio"
-              ></textarea>
-            </div>
-
-            <div class="form-field">
-              <label for="episodio-avaliacao">
-                Avaliação (1 a 5 estrelas, aceita 0.5)
-              </label>
-              <div class="rating-wrapper">
-                <input
-                  id="episodio-avaliacao"
-                  type="number"
-                  min="0"
-                  max="5"
-                  step="0.5"
-                  placeholder="Ex: 4"
-                />
-                <div id="episodio-rating-stars" class="rating-stars">
-                  ☆☆☆☆☆
+              <div class="form-field full">
+                <label>Avaliação (1 a 5 estrelas, com meia estrela)</label>
+                <div class="rating-control">
+                  <div id="episodio-rating-stars" class="rating-stars">☆☆☆☆☆</div>
+                  <input id="episodio-avaliacao" type="number" min="0" max="5" step="0.5" placeholder="Ex: 4.0" />
                 </div>
               </div>
-            </div>
-
-            <div class="form-actions">
-              <button id="btn-salvar-episodio" class="btn primary" type="submit">
-                💾 Salvar episódio
-              </button>
-              <button
-                id="btn-cancelar-edicao-episodio"
-                class="btn ghost"
-                type="button"
-                style="display: none"
-              >
-                Cancelar edição
-              </button>
-            </div>
-          </form>
-        </section>
-
-        <!-- LISTAGEM DE EPISÓDIOS AGRUPADOS -->
-        <section class="panel">
-          <h3>🧾 Episódios cadastrados</h3>
-          <div id="lista-episodios-agrupados" class="episodios-agrupados"></div>
-        </section>
-      </section>
+            </form>
+          </div>
+          <footer class="modal-footer">
+            <button id="btn-salvar-episodio" class="btn primary">Salvar</button>
+            <button id="btn-cancelar-episodio" class="btn ghost">Cancelar</button>
+          </footer>
+        </div>
+      </div>
     </main>
-  </body>
+  </div>
+
+  <!-- Toast de mensagens -->
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- App -->
+  <script src="app.js"></script>
+</body>
 </html>
