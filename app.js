@@ -6,6 +6,13 @@ const SUPABASE_ANON_KEY =
 const { createClient } = supabase;
 const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// ======= TMDb CONFIG =======
+const TMDB_API_KEY = "34d1febeb2c306bd928d270c1990c076";
+const TMDB_BEARER_TOKEN =
+  "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIzNGQxZmViZWIyYzMwNmJkOTI4ZDI3MGMxOTkwYzA3NiIsIm5iZiI6MTc2NDU0NzczNC43MDIwMDAxLCJzdWIiOiI2OTJjZGM5Njg1ZTg0OGEwYjAyNmVhZTYiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.Htppj_TDovsK4-xrjzwZrBduPQJZSy9HErIjkvm8DgY";
+const TMDB_BASE_URL = "https://api.themoviedb.org/3";
+const TMDB_IMG_BASE = "https://image.tmdb.org/t/p/w342";
+
 const TABLE_MIDIAS = "midias";
 const TABLE_EPISODIOS = "episodios";
 
@@ -42,6 +49,12 @@ const midiaRatingStars = document.getElementById("midia-rating-stars");
 const imagemUrlInput = document.getElementById("imagem-url");
 const btnSalvarMidia = document.getElementById("btn-salvar");
 const btnCancelarEdicaoMidia = document.getElementById("btn-cancelar-edicao");
+
+// TMDb
+const tmdbTituloInput = document.getElementById("tmdb-titulo");
+const tmdbAnoInput = document.getElementById("tmdb-ano");
+const btnTmdbBuscar = document.getElementById("btn-tmdb-buscar");
+const tmdbResultadosDiv = document.getElementById("tmdb-resultados");
 
 // Filtros principais
 const filtroNome = document.getElementById("filtro-nome");
@@ -237,6 +250,7 @@ function clearMidiaForm() {
   avaliacaoInput.value = "";
   anoInput.value = "";
   midiaRatingStars.textContent = "";
+  tmdbResultadosDiv.innerHTML = "";
 }
 
 // ======= VIEW CONTROL + TITLE =======
@@ -286,6 +300,209 @@ function readFileAsText(file) {
     reader.onload = () => resolve(reader.result);
     reader.readAsText(file);
   });
+}
+
+// ======= TMDb HELPERS =======
+function buildTmdbUrl(path, params = {}) {
+  const url = new URL(TMDB_BASE_URL + path);
+  url.searchParams.set("api_key", TMDB_API_KEY);
+  url.searchParams.set("language", "pt-BR");
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== undefined && v !== null && v !== "") {
+      url.searchParams.set(k, v);
+    }
+  });
+  return url.toString();
+}
+
+function renderTmdbResultados(lista) {
+  tmdbResultadosDiv.innerHTML = "";
+  if (!lista.length) {
+    const div = document.createElement("div");
+    div.style.fontSize = "0.8rem";
+    div.style.color = "var(--text-soft)";
+    div.textContent = "Nenhum resultado encontrado.";
+    tmdbResultadosDiv.appendChild(div);
+    return;
+  }
+
+  lista.slice(0, 8).forEach((item) => {
+    const card = document.createElement("div");
+    card.className = "tmdb-card";
+
+    if (item.poster_path) {
+      const img = document.createElement("img");
+      img.className = "tmdb-thumb";
+      img.src = TMDB_IMG_BASE + item.poster_path;
+      img.alt = item.title || item.name || "";
+      card.appendChild(img);
+    }
+
+    const body = document.createElement("div");
+    body.className = "tmdb-card-body";
+
+    const title = document.createElement("div");
+    title.className = "tmdb-card-title";
+    title.textContent = item.title || item.name || "(sem título)";
+    body.appendChild(title);
+
+    const meta = document.createElement("div");
+    meta.className = "tmdb-card-meta";
+
+    const ano =
+      item.release_date || item.first_air_date
+        ? (item.release_date || item.first_air_date).slice(0, 4)
+        : "—";
+
+    const tipo =
+      item.media_type === "movie"
+        ? "Filme"
+        : item.media_type === "tv"
+        ? "Série"
+        : "Outro";
+
+    meta.textContent = `${tipo} • Ano: ${ano} • Nota TMDb: ${
+      item.vote_average ? item.vote_average.toFixed(1) : "—"
+    }`;
+    body.appendChild(meta);
+
+    const tipoDiv = document.createElement("div");
+    tipoDiv.className = "tmdb-card-type";
+    tipoDiv.textContent =
+      item.media_type === "movie"
+        ? "FILME"
+        : item.media_type === "tv"
+        ? "SÉRIE"
+        : item.media_type || "";
+    body.appendChild(tipoDiv);
+
+    card.appendChild(body);
+
+    card.addEventListener("click", () => selecionarTmdbResultado(item));
+
+    tmdbResultadosDiv.appendChild(card);
+  });
+}
+
+async function buscarTmdb() {
+  try {
+    const titulo = tmdbTituloInput.value.trim();
+    const ano = tmdbAnoInput.value ? parseInt(tmdbAnoInput.value) : null;
+
+    if (!TMDB_API_KEY) {
+      showMessage("Configure sua TMDb API key em app.js.", "error");
+      return;
+    }
+
+    if (!titulo) {
+      showMessage("Digite um título para buscar na TMDb.", "error");
+      return;
+    }
+
+    showMessage("Buscando na TMDb...", "success", 2000);
+    btnTmdbBuscar.disabled = true;
+
+    const url = buildTmdbUrl("/search/multi", {
+      query: titulo,
+      include_adult: false,
+      ...(ano ? { year: ano } : {}),
+    });
+
+    const resp = await fetch(url, {
+      headers: {
+        accept: "application/json",
+        Authorization: `Bearer ${TMDB_BEARER_TOKEN}`,
+      },
+    });
+    if (!resp.ok) {
+      throw new Error("Erro ao consultar TMDb.");
+    }
+    const json = await resp.json();
+    const resultados = (json.results || []).filter((r) =>
+      ["movie", "tv"].includes(r.media_type)
+    );
+
+    renderTmdbResultados(resultados);
+  } catch (err) {
+    console.error(err);
+    showMessage(err.message || "Erro ao buscar na TMDb.", "error");
+  } finally {
+    btnTmdbBuscar.disabled = false;
+  }
+}
+
+async function selecionarTmdbResultado(item) {
+  try {
+    if (!TMDB_API_KEY) {
+      showMessage("Configure sua TMDb API key em app.js.", "error");
+      return;
+    }
+
+    const isMovie = item.media_type === "movie";
+    const tipo = isMovie ? "FILME" : "SERIE";
+
+    const detailUrl = buildTmdbUrl(
+      `/${isMovie ? "movie" : "tv"}/${item.id}`,
+      { append_to_response: "credits" }
+    );
+
+    const resp = await fetch(detailUrl, {
+      headers: {
+        accept: "application/json",
+        Authorization: `Bearer ${TMDB_BEARER_TOKEN}`,
+      },
+    });
+    if (!resp.ok) {
+      throw new Error("Erro ao obter detalhes da TMDb.");
+    }
+    const det = await resp.json();
+
+    tipoSelect.value = tipo;
+
+    const titulo = det.title || det.name || item.title || item.name || "";
+    nomeInput.value = titulo;
+
+    const dataLanc = det.release_date || det.first_air_date || "";
+    dataLancInput.value = dataLanc || "";
+    if (dataLanc) {
+      const y = new Date(dataLanc).getFullYear();
+      if (!Number.isNaN(y)) anoInput.value = y;
+    } else {
+      anoInput.value = "";
+    }
+
+    if (Array.isArray(det.genres) && det.genres.length) {
+      generoInput.value = det.genres.map((g) => g.name).join(" / ");
+    }
+
+    let diretores = "";
+    if (isMovie && det.credits && Array.isArray(det.credits.crew)) {
+      const dirs = det.credits.crew.filter((p) => p.job === "Director");
+      if (dirs.length) {
+        diretores = dirs.map((d) => d.name).join(", ");
+      }
+    } else if (!isMovie && Array.isArray(det.created_by) && det.created_by.length) {
+      diretores = det.created_by.map((c) => c.name).join(", ");
+    }
+    diretorInput.value = diretores || diretorInput.value;
+
+    if (det.poster_path) {
+      imagemUrlInput.value = TMDB_IMG_BASE + det.poster_path;
+    }
+
+    avaliacaoInput.value = "";
+    midiaRatingStars.textContent = "";
+
+    if (isMovie && det.belongs_to_collection && det.belongs_to_collection.name) {
+      franquiaInput.value = det.belongs_to_collection.name;
+    }
+
+    showMessage("Dados preenchidos a partir da TMDb. Confira e salve.", "success");
+    tmdbResultadosDiv.innerHTML = "";
+  } catch (err) {
+    console.error(err);
+    showMessage(err.message || "Erro ao preencher dados da TMDb.", "error");
+  }
 }
 
 // ======= SALVAR MÍDIA =======
@@ -381,7 +598,7 @@ function entrarModoEdicaoMidia(midia) {
     midia.avaliacao !== null && midia.avaliacao !== undefined ? midia.avaliacao : "";
   midiaRatingStars.textContent = renderStars(avaliacaoInput.value);
   imagemUrlInput.value = midia.imagem_url || "";
-  btnSalvarMidia.textContent = "Atualizar";
+  btnSalvarMidia.innerHTML = "<span>💾</span><span>Atualizar</span>";
   btnCancelarEdicaoMidia.style.display = "inline-flex";
   mostrarGerirView();
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -389,7 +606,7 @@ function entrarModoEdicaoMidia(midia) {
 
 function sairModoEdicaoMidia() {
   midiaEmEdicao = null;
-  btnSalvarMidia.textContent = "Salvar";
+  btnSalvarMidia.innerHTML = "<span>💾</span><span>Salvar</span>";
   btnCancelarEdicaoMidia.style.display = "none";
   clearMidiaForm();
 }
@@ -1115,8 +1332,15 @@ function aplicarFiltros() {
   saveFiltersToStorage();
 }
 
-[filtroNome, filtroDiretor, filtroNotaMin, filtroStreaming,
-  filtroAno, filtroGenero, filtroFranquia].forEach((el) => {
+[
+  filtroNome,
+  filtroDiretor,
+  filtroNotaMin,
+  filtroStreaming,
+  filtroAno,
+  filtroGenero,
+  filtroFranquia,
+].forEach((el) => {
   el.addEventListener("input", aplicarFiltros);
   el.addEventListener("change", aplicarFiltros);
 });
@@ -1885,6 +2109,19 @@ btnGerirColecao.addEventListener("click", () => {
 btnVoltarLista.addEventListener("click", () => {
   mostrarMainView();
 });
+
+// Botão de buscar na TMDb
+if (btnTmdbBuscar) {
+  btnTmdbBuscar.addEventListener("click", buscarTmdb);
+}
+if (tmdbTituloInput) {
+  tmdbTituloInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      buscarTmdb();
+    }
+  });
+}
 
 // ======= INICIALIZAÇÃO =======
 attachStarRating(midiaRatingStars, avaliacaoInput);
