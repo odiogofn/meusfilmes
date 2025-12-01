@@ -149,7 +149,7 @@
               <div id="top10-best" class="top10-list"></div>
             </div>
             <div class="top-column">
-              <div class="top-column-title">⬇ Top 10 menos avaliados</div>
+              <class class="top-column-title">⬇ Top 10 menos avaliados</class>
               <div id="top10-worst" class="top10-list"></div>
             </div>
             <div class="top-column">
@@ -180,6 +180,34 @@
             <button id="btn-voltar-lista" type="button" class="btn btn-outline">
               <span>←</span><span>Voltar para lista</span>
             </button>
+          </div>
+
+          <!-- BUSCA TMDb (AUTOPREENCHER CAMPOS) -->
+          <div class="tmdb-box">
+            <div class="form-field">
+              <label>Buscar na TMDb (opcional)</label>
+              <div class="tmdb-row">
+                <input
+                  id="tmdb-titulo"
+                  placeholder="Digite o título (ex: Matrix)"
+                />
+                <input
+                  id="tmdb-ano"
+                  type="number"
+                  min="1900"
+                  max="2100"
+                  placeholder="Ano (opcional)"
+                />
+                <button type="button" id="btn-tmdb-buscar" class="btn btn-outline">
+                  <span>🔍</span><span>Buscar na TMDb</span>
+                </button>
+              </div>
+              <small>
+                Usa a API do The Movie Database pra preencher automaticamente:
+                título, data/ano, pôster, gênero, diretor(es), tipo (filme/série) etc.
+              </small>
+            </div>
+            <div id="tmdb-resultados"></div>
           </div>
 
           <form id="midia-form">
