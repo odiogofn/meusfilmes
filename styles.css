@@ -659,4 +659,260 @@ textarea::placeholder { color: rgba(148, 163, 184, 0.9); }
 .episodios-import {
   margin-bottom: 12px;
   background: #f9fafb;
-  border-r
+  border-radius: var(--radius-md);
+  border: 1px dashed #d1d5db;
+  padding: 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px 12px;
+  align-items: end;
+  font-size: 0.78rem;
+  color: var(--text-soft);
+}
+.episodios-import small {
+  font-size: 0.74rem;
+  color: var(--text-soft);
+}
+
+.episodios-list {
+  background: #ffffff;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid #e5e7eb;
+  font-size: 0.85rem;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.episodios-list-vazia { color: var(--text-soft); font-size: 0.82rem; }
+
+/* Cada temporada em um card separado */
+.temporada-bloco {
+  margin-bottom: 12px;
+  padding: 10px 10px 8px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  box-shadow: 0 4px 10px rgba(148, 163, 184, 0.2);
+}
+
+/* Título da temporada bem evidente */
+.temporada-titulo {
+  font-weight: 700;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+  color: #111827;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 4px;
+}
+
+/* Cabeçalho de status (faixa colorida) */
+.episodios-status-header {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 8px 0 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.episodios-status-header::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+}
+
+/* cores por status */
+.episodios-status-header[data-status="ASSISTINDO"] {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+.episodios-status-header[data-status="ASSISTINDO"]::before {
+  background: #1d4ed8;
+}
+
+.episodios-status-header[data-status="ASSISTIDOS"] {
+  background: #dcfce7;
+  color: #15803d;
+}
+.episodios-status-header[data-status="ASSISTIDOS"]::before {
+  background: #16a34a;
+}
+
+.episodios-status-header[data-status="NAO_COMECEI"] {
+  background: #fef3c7;
+  color: #92400e;
+}
+.episodios-status-header[data-status="NAO_COMECEI"]::before {
+  background: #f59e0b;
+}
+
+/* Episódio com separador */
+.episodio-item {
+  margin-bottom: 6px;
+  padding: 6px 0;
+  border-bottom: 1px dashed #e5e7eb;
+}
+.episodio-item:last-child {
+  border-bottom: none;
+}
+
+.episodio-topline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.episodio-info {
+  max-width: 70%;
+  font-size: 0.83rem;
+}
+
+.episodio-resumo {
+  margin-top: 3px;
+  font-size: 0.78rem;
+  color: var(--text-soft);
+}
+
+.episodio-acao {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* Loading overlay */
+#loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(249, 250, 251, 0.7);
+  backdrop-filter: blur(2px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 999;
+}
+
+.loading-spinner {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 3px solid #e5e7eb;
+  border-top-color: var(--primary);
+  animation: spin 0.8s linear infinite;
+}
+
+.loading-text {
+  margin-top: 8px;
+  font-size: 0.82rem;
+  color: var(--text-soft);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* TMDb box */
+.tmdb-box {
+  background: #f9fafb;
+  border-radius: var(--radius-md);
+  border: 1px dashed #d1d5db;
+  padding: 10px;
+  margin-bottom: 12px;
+}
+
+.tmdb-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+#tmdb-titulo {
+  flex: 2;
+  min-width: 160px;
+}
+
+#tmdb-ano {
+  flex: 0 0 100px;
+}
+
+#tmdb-resultados {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Card de resultado da TMDb */
+.tmdb-card {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+}
+
+.tmdb-card:hover {
+  background: #eff6ff;
+  border-color: #c7d2fe;
+  transform: translateY(-1px);
+}
+
+.tmdb-thumb {
+  width: 42px;
+  height: 63px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid #e5e7eb;
+  background: #e5e7eb;
+  flex-shrink: 0;
+}
+
+.tmdb-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tmdb-card-title {
+  font-weight: 600;
+}
+
+.tmdb-card-meta {
+  color: var(--text-soft);
+}
+
+.tmdb-card-type {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: #4b5563;
+}
+
+@media (max-width: 768px) {
+  .topbar-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .episodios-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
