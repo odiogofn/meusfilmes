@@ -83,7 +83,7 @@ body {
   white-space: nowrap;
 }
 
-/* Botões dentro dos cards de mídia – menores pra caber tudo bonitinho */
+/* Botões dentro dos cards de mídia – mais compactos */
 .card .btn {
   padding: 4px 9px;
   font-size: 0.78rem;
@@ -309,7 +309,7 @@ body {
   overflow-y: auto;
 }
 
-/* Aqui ajusta o Top 10 pra não quebrar feio com título grande */
+/* Top 10 – nome grande com reticências */
 .highlight-box li {
   font-size: 0.82rem;
   padding: 4px 0;
@@ -392,10 +392,18 @@ body {
   box-shadow: 0 14px 30px rgba(15, 23, 42, 0.18);
 }
 
+/* Linha de pôsteres: rolagem horizontal, mas barra escondida */
 .franquia-poster-row {
   display: flex;
   gap: 4px;
   overflow-x: auto;
+  padding-bottom: 2px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.franquia-poster-row::-webkit-scrollbar {
+  display: none;
 }
 
 .franquia-poster-row img {
@@ -459,8 +467,7 @@ body {
   gap: 4px;
 }
 
-/* Linha de título + badge
-   – permite título grande com até 2 linhas e badge fixo à direita */
+/* título + badge */
 .card-title-line {
   display: flex;
   justify-content: space-between;
@@ -476,7 +483,7 @@ body {
   overflow: hidden;
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2; /* até 2 linhas */
+  -webkit-line-clamp: 2;
   text-overflow: ellipsis;
 }
 
@@ -518,7 +525,7 @@ body {
   align-items: flex-start;
   margin-top: 4px;
   gap: 6px;
-  flex-wrap: wrap; /* permite quebrar linhas em telas menores */
+  flex-wrap: wrap;
 }
 
 .badge-status {
@@ -545,7 +552,7 @@ body {
 .card-actions {
   display: flex;
   gap: 6px;
-  flex-wrap: wrap;          /* evita quebrar o card com botão “Ver episódios” */
+  flex-wrap: wrap;
   justify-content: flex-end;
 }
 
