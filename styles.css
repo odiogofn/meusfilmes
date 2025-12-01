@@ -83,6 +83,12 @@ body {
   white-space: nowrap;
 }
 
+/* Botões dentro dos cards de mídia – menores pra caber tudo bonitinho */
+.card .btn {
+  padding: 4px 9px;
+  font-size: 0.78rem;
+}
+
 .btn.primary {
   background: var(--accent);
   color: #fff;
@@ -303,6 +309,7 @@ body {
   overflow-y: auto;
 }
 
+/* Aqui ajusta o Top 10 pra não quebrar feio com título grande */
 .highlight-box li {
   font-size: 0.82rem;
   padding: 4px 0;
@@ -310,10 +317,24 @@ body {
   display: flex;
   justify-content: space-between;
   gap: 8px;
+  align-items: center;
 }
 
 .highlight-box li:last-child {
   border-bottom: none;
+}
+
+.highlight-box li span:first-child {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.highlight-box li span:last-child {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 /* FRANQUIAS */
@@ -438,16 +459,25 @@ body {
   gap: 4px;
 }
 
+/* Linha de título + badge
+   – permite título grande com até 2 linhas e badge fixo à direita */
 .card-title-line {
   display: flex;
   justify-content: space-between;
   gap: 8px;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .card-title {
   font-size: 0.95rem;
   font-weight: 600;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2; /* até 2 linhas */
+  text-overflow: ellipsis;
 }
 
 .badge-tipo {
@@ -456,6 +486,7 @@ body {
   border-radius: 999px;
   background: #e5e7eb;
   color: #111827;
+  flex-shrink: 0;
 }
 
 .badge-serie {
@@ -478,13 +509,16 @@ body {
 
 .card-stars {
   font-size: 0.8rem;
+  white-space: nowrap;
 }
 
 .card-footer {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-top: 4px;
+  gap: 6px;
+  flex-wrap: wrap; /* permite quebrar linhas em telas menores */
 }
 
 .badge-status {
@@ -511,6 +545,8 @@ body {
 .card-actions {
   display: flex;
   gap: 6px;
+  flex-wrap: wrap;          /* evita quebrar o card com botão “Ver episódios” */
+  justify-content: flex-end;
 }
 
 .serie-resumo {
