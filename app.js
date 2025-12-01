@@ -16,7 +16,7 @@ const TMDB_IMG_BASE = "https://image.tmdb.org/t/p/w342";
 const TABLE_MIDIAS = "midias";
 const TABLE_EPISODIOS = "episodios";
 
-// Labels de status centralizadas
+// Labels de status
 const STATUS_LABELS = {
   ASSISTINDO: "ASSISTINDO",
   ASSISTIDOS: "ASSISTIDOS",
@@ -44,7 +44,7 @@ const streamingInput = document.getElementById("streaming");
 const tipoSelect = document.getElementById("tipo");
 const franquiaInput = document.getElementById("franquia");
 const statusSelect = document.getElementById("status");
-const avaliacaoInput = document.getElementById("avaliacao"); // hidden number
+const avaliacaoInput = document.getElementById("avaliacao");
 const midiaRatingStars = document.getElementById("midia-rating-stars");
 const imagemUrlInput = document.getElementById("imagem-url");
 const btnSalvarMidia = document.getElementById("btn-salvar");
@@ -103,7 +103,7 @@ const epNumInput = document.getElementById("ep-num");
 const epTituloInput = document.getElementById("ep-titulo");
 const epResumoInput = document.getElementById("ep-resumo");
 const epStatusSelect = document.getElementById("ep-status");
-const epAvalInput = document.getElementById("ep-avaliacao"); // hidden number
+const epAvalInput = document.getElementById("ep-avaliacao");
 const epRatingStars = document.getElementById("ep-rating-stars");
 const btnSalvarEp = document.getElementById("btn-salvar-episodio");
 const btnCancelarEp = document.getElementById("btn-cancelar-ep");
@@ -142,12 +142,21 @@ function showMessage(text, type = "success", timeout = 3500) {
   }
 }
 
-// Loading overlay
 function showLoading(show) {
   loadingOverlay.style.display = show ? "flex" : "none";
 }
 
-// Status
+function setTitleMain() {
+  document.title = "MediaVault – Minha coleção";
+}
+function setTitleGerir() {
+  document.title = "MediaVault – Gerir coleção";
+}
+function setTitleEpisodios(midia) {
+  const nome = midia?.nome || "Episódios";
+  document.title = `MediaVault – Episódios de ${nome}`;
+}
+
 function mapStatusToLabel(status) {
   return STATUS_LABELS[status] || status || "";
 }
@@ -182,17 +191,22 @@ function formatRating(raw) {
   return v % 1 === 0 ? v.toString() : v.toFixed(1);
 }
 
-// Estrelas clicáveis (0–5 com passos de 0.5)
+// ESTRELAS CLICÁVEIS – sempre mostra algo (☆☆☆☆☆ se não tiver nota)
 function attachStarRating(element, input) {
   function updateView() {
-    element.textContent = renderStars(input.value);
+    const v = sanitizeRating(input.value);
+    if (v === null) {
+      element.textContent = "☆☆☆☆☆"; // base vazia
+    } else {
+      element.textContent = renderStars(v);
+    }
   }
 
   element.addEventListener("click", (e) => {
     const rect = element.getBoundingClientRect();
     const x = e.clientX - rect.left;
-    const fraction = x / rect.width; // 0..1
-    let rating = Math.ceil(fraction * 10) / 2; // 0.5 steps, 0..5
+    const fraction = x / rect.width;
+    let rating = Math.ceil(fraction * 10) / 2; // 0.5 steps
     if (rating < 0.5) rating = 0.5;
     if (rating > 5) rating = 5;
     input.value = rating;
@@ -202,7 +216,7 @@ function attachStarRating(element, input) {
   updateView();
 }
 
-// Data de lançamento -> ano
+// Data -> ano
 dataLancInput.addEventListener("change", () => {
   const val = dataLancInput.value;
   if (!val) {
@@ -211,17 +225,14 @@ dataLancInput.addEventListener("change", () => {
   }
   const dt = new Date(val);
   const y = dt.getFullYear();
-  if (!Number.isNaN(y)) {
-    anoInput.value = y;
-  }
+  if (!Number.isNaN(y)) anoInput.value = y;
 });
 
-// Normaliza status vindo do JSON de episódios
+// Normalizar status import episódios
 function mapStatusImportEp(raw) {
   if (raw === null || raw === undefined || raw === "") {
     return "NAO_COMECEI";
   }
-
   let s = raw.toString().trim();
   let normalized = s
     .normalize("NFD")
@@ -230,7 +241,6 @@ function mapStatusImportEp(raw) {
 
   if (normalized === "ASSISTINDO") return "ASSISTINDO";
   if (normalized === "ASSISTIDOS" || normalized === "ASSISTIDO") return "ASSISTIDOS";
-
   if (
     normalized.includes("AINDA") &&
     normalized.includes("NAO") &&
@@ -238,7 +248,6 @@ function mapStatusImportEp(raw) {
   ) {
     return "NAO_COMECEI";
   }
-
   if (normalized === "NAO_COMECEI") return "NAO_COMECEI";
   return "NAO_COMECEI";
 }
@@ -249,22 +258,11 @@ function clearMidiaForm() {
   imagemUrlInput.value = "";
   avaliacaoInput.value = "";
   anoInput.value = "";
-  midiaRatingStars.textContent = "";
+  midiaRatingStars.textContent = "☆☆☆☆☆";
   tmdbResultadosDiv.innerHTML = "";
 }
 
-// ======= VIEW CONTROL + TITLE =======
-function setTitleMain() {
-  document.title = "MediaVault – Minha coleção";
-}
-function setTitleGerir() {
-  document.title = "MediaVault – Gerir coleção";
-}
-function setTitleEpisodios(midia) {
-  const nome = midia?.nome || "Episódios";
-  document.title = `MediaVault – Episódios de ${nome}`;
-}
-
+// ======= VIEW CONTROL =======
 function mostrarMainView() {
   mainView.style.display = "block";
   topsPanel.style.display = "block";
@@ -491,7 +489,7 @@ async function selecionarTmdbResultado(item) {
     }
 
     avaliacaoInput.value = "";
-    midiaRatingStars.textContent = "";
+    midiaRatingStars.textContent = "☆☆☆☆☆";
 
     if (isMovie && det.belongs_to_collection && det.belongs_to_collection.name) {
       franquiaInput.value = det.belongs_to_collection.name;
@@ -515,6 +513,7 @@ async function salvarMidia(e) {
     const diretor = diretorInput.value.trim() || null;
     const genero = generoInput.value.trim() || null;
     const data_lancamento = dataLancInput.value || null;
+
     let ano = null;
     if (data_lancamento) {
       const dt = new Date(data_lancamento);
@@ -523,6 +522,7 @@ async function salvarMidia(e) {
     } else if (anoInput.value) {
       ano = parseInt(anoInput.value);
     }
+
     const streaming = streamingInput.value.trim() || null;
     const tipo = tipoSelect.value;
     const franquia = franquiaInput.value.trim() || null;
@@ -596,7 +596,8 @@ function entrarModoEdicaoMidia(midia) {
   statusSelect.value = midia.status || "ASSISTINDO";
   avaliacaoInput.value =
     midia.avaliacao !== null && midia.avaliacao !== undefined ? midia.avaliacao : "";
-  midiaRatingStars.textContent = renderStars(avaliacaoInput.value);
+  const val = sanitizeRating(avaliacaoInput.value);
+  midiaRatingStars.textContent = val === null ? "☆☆☆☆☆" : renderStars(val);
   imagemUrlInput.value = midia.imagem_url || "";
   btnSalvarMidia.innerHTML = "<span>💾</span><span>Atualizar</span>";
   btnCancelarEdicaoMidia.style.display = "inline-flex";
@@ -687,7 +688,8 @@ function entrarModoEdicaoEp(ep) {
   epStatusSelect.value = ep.status || "ASSISTINDO";
   epAvalInput.value =
     ep.avaliacao !== null && ep.avaliacao !== undefined ? ep.avaliacao : "";
-  epRatingStars.textContent = renderStars(epAvalInput.value);
+  const val = sanitizeRating(epAvalInput.value);
+  epRatingStars.textContent = val === null ? "☆☆☆☆☆" : renderStars(val);
   btnSalvarEp.innerHTML = "<span>💾</span><span>Salvar alterações</span>";
   btnCancelarEp.style.display = "inline-flex";
 }
@@ -702,7 +704,7 @@ function sairModoEdicaoEp() {
   epStatusSelect.value = midiaAtualEpisodios
     ? midiaAtualEpisodios.status || "ASSISTINDO"
     : "ASSISTINDO";
-  epRatingStars.textContent = renderStars(epAvalInput.value);
+  epRatingStars.textContent = "☆☆☆☆☆";
   btnSalvarEp.innerHTML = "<span>➕</span><span>Adicionar episódio</span>";
   btnCancelarEp.style.display = "none";
 }
@@ -734,7 +736,7 @@ async function excluirEpisodio(ep) {
   }
 }
 
-// ======= IMPORT/EXPORT MODELO EPISÓDIOS =======
+// ======= IMPORT/EXPORT EPISÓDIOS =======
 btnExportModeloEp.addEventListener("click", () => {
   if (!midiaAtualEpisodios) {
     showMessage("Abra uma série primeiro (Ver episódios).", "error");
@@ -775,7 +777,6 @@ btnExportModeloEp.addEventListener("click", () => {
   URL.revokeObjectURL(url);
 });
 
-// IMPORTADOR DE EPISÓDIOS
 btnImportEp.addEventListener("click", async () => {
   try {
     if (!midiaAtualEpisodios) {
@@ -948,7 +949,6 @@ btnExportMidiasJSON.addEventListener("click", () => {
   URL.revokeObjectURL(url);
 });
 
-// Export CSV simples
 btnExportMidiasCSV.addEventListener("click", () => {
   if (!todasMidias.length) {
     showMessage("Não há mídias cadastradas para exportar.", "error");
@@ -1000,7 +1000,6 @@ btnExportMidiasCSV.addEventListener("click", () => {
   URL.revokeObjectURL(url);
 });
 
-// IMPORTADOR DE MÍDIAS
 btnImportMidia.addEventListener("click", async () => {
   try {
     const file = midiaImportFile.files[0];
@@ -1118,7 +1117,7 @@ btnImportMidia.addEventListener("click", async () => {
 
     if (!toInsert.length) {
       showMessage(
-        "Nenhuma mídia nova para importar (todas existentes ou inválidas).",
+        "Nenhuma mídia novo para importar (todas existentes ou inválidas).",
         "error"
       );
       return;
@@ -1261,7 +1260,6 @@ function atualizarFiltros(midias) {
   if (curF) filtroFranquia.value = curF;
 }
 
-// localStorage – salvar aba + filtro nome
 function saveFiltersToStorage() {
   const data = {
     abaStatus,
@@ -1364,7 +1362,6 @@ btnFiltroAssistindo.addEventListener("click", () => {
   selecionarAba("ASSISTINDO");
 });
 
-// Tabs
 function selecionarAba(status) {
   abaStatus = status || "";
   document.querySelectorAll(".tab-status").forEach((btn) => {
@@ -1739,7 +1736,7 @@ function renderTopLists() {
   topsPanel.style.display = "block";
 }
 
-// ======= COLEÇÕES DE FRANQUIAS =======
+// ======= COLEÇÕES =======
 function aplicarFiltroFranquia(nomeFranquia) {
   filtroFranquia.value = nomeFranquia;
   abaStatus = "";
@@ -2033,7 +2030,7 @@ function renderizarEpisodiosView() {
 
           const headerStatus = document.createElement("div");
           headerStatus.className = "episodios-status-header";
-          headerStatus.dataset.status = g.status; // para o CSS pintar diferente
+          headerStatus.dataset.status = g.status;
           headerStatus.textContent = g.label;
           bloco.appendChild(headerStatus);
 
@@ -2111,7 +2108,6 @@ btnVoltarLista.addEventListener("click", () => {
   mostrarMainView();
 });
 
-// Botão de buscar na TMDb
 if (btnTmdbBuscar) {
   btnTmdbBuscar.addEventListener("click", buscarTmdb);
 }
