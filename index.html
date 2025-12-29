@@ -15,14 +15,11 @@
       --mut:#64748b;
       --pri:#4f46e5;
       --pri2:#eef2ff;
-      --ok:#16a34a;
-      --warn:#b45309;
       --danger:#b91c1c;
       --shadow: 0 10px 30px rgba(15,23,42,.10);
       --r:16px;
       --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
     }
-
     *{box-sizing:border-box}
     body{margin:0;font-family:var(--font);background:var(--bg);color:var(--txt)}
     .wrap{max-width:1180px;margin:0 auto;padding:18px 14px 44px}
@@ -32,7 +29,7 @@
 
     .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
     .panel{background:var(--panel);border-radius:var(--r);box-shadow:var(--shadow);padding:14px;margin:12px 0}
-    .btn{border:0;border-radius:999px;padding:8px 14px;cursor:pointer;transition:.15s;white-space:nowrap;font-weight:600}
+    .btn{border:0;border-radius:999px;padding:8px 14px;cursor:pointer;transition:.15s;white-space:nowrap;font-weight:700}
     .btn.primary{background:var(--pri);color:#fff;box-shadow:0 6px 18px rgba(79,70,229,.25)}
     .btn.primary:hover{background:#4338ca;transform:translateY(-1px)}
     .btn.secondary{background:var(--pri2);color:var(--pri)}
@@ -45,7 +42,7 @@
       background:#fff;font-size:.93rem;outline:none
     }
     textarea{resize:vertical}
-    label{font-size:.78rem;color:var(--mut);font-weight:700}
+    label{font-size:.78rem;color:var(--mut);font-weight:800}
     .small{font-size:.83rem;color:var(--mut)}
     .divider{height:1px;background:var(--bd);margin:10px 0}
 
@@ -64,7 +61,7 @@
     .content{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
     .titleLine{display:flex;gap:8px;align-items:flex-start}
     .title{
-      font-weight:800;font-size:.98rem;min-width:0;flex:1;line-height:1.15;
+      font-weight:900;font-size:.98rem;min-width:0;flex:1;line-height:1.15;
       display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
       word-break:break-word;
     }
@@ -76,12 +73,30 @@
     .footer{
       margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap
     }
-    .status{font-size:.74rem;border-radius:999px;padding:3px 9px;font-weight:700}
+    .status{font-size:.74rem;border-radius:999px;padding:3px 9px;font-weight:900}
     .st-assistindo{background:#eef2ff;color:#4f46e5}
     .st-assistidos{background:#dcfce7;color:#15803d}
     .st-nao{background:#fef3c7;color:#92400e}
     .starsInline{font-size:.86rem;color:#0f172a;white-space:nowrap;display:flex;gap:6px;align-items:center}
-    .starsInline .mut{color:var(--mut);font-weight:700}
+    .starsInline .mut{color:var(--mut);font-weight:900}
+
+    /* TOPS */
+    .topsGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    @media(max-width:980px){.topsGrid{grid-template-columns:1fr}}
+    .topBox{background:#fff;border:1px solid var(--bd);border-radius:16px;box-shadow:0 10px 22px rgba(15,23,42,.06);overflow:hidden}
+    .topHead{padding:10px 12px;background:#fafafa;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center;gap:10px}
+    .topHead b{font-size:.95rem}
+    .topList{max-height:220px;overflow:auto;padding:6px 0}
+    .topItem{display:flex;gap:10px;align-items:center;padding:8px 12px;border-bottom:1px solid #f1f5f9;cursor:pointer}
+    .topItem:hover{background:#f8fafc}
+    .topItem:last-child{border-bottom:0}
+    .topItem .name{
+      flex:1;min-width:0;font-weight:900;font-size:.86rem;
+      display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+      word-break:break-word;
+    }
+    .topItem .note{font-weight:900;color:var(--mut);font-size:.85rem;white-space:nowrap}
+    .topItem .stars{white-space:nowrap;font-size:.85rem}
 
     /* Modal */
     .backdrop{
@@ -116,19 +131,19 @@
 
     /* Rating */
     .ratingRow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .stars{
+    .starsBox{
       user-select:none;cursor:pointer;font-size:1.35rem;letter-spacing:1px;
       padding:4px 10px;border-radius:14px;border:1px dashed var(--bd);background:#fff
     }
-    .stars.readonly{cursor:default;opacity:.95}
+    .starsBox.readonly{cursor:default;opacity:.95}
     .pill{
-      background:var(--panel);border:1px solid var(--bd);border-radius:999px;padding:6px 10px;font-size:.82rem;color:var(--mut);font-weight:700
+      background:var(--panel);border:1px solid var(--bd);border-radius:999px;padding:6px 10px;font-size:.82rem;color:var(--mut);font-weight:900
     }
 
     /* Episodes */
     details{border:1px solid var(--bd);border-radius:14px;background:#fff;box-shadow:0 10px 22px rgba(15,23,42,.06)}
     details + details{margin-top:10px}
-    summary{cursor:pointer;padding:10px 12px;list-style:none;font-weight:800}
+    summary{cursor:pointer;padding:10px 12px;list-style:none;font-weight:900}
     summary::-webkit-details-marker{display:none}
     .epWrap{padding:10px 12px;border-top:1px solid var(--bd)}
     .epGroupTitle{font-weight:900;margin:0 0 8px}
@@ -137,6 +152,17 @@
     .epTable th{background:#f3f4f6}
     .epActions{display:flex;gap:6px;flex-wrap:wrap}
     .tag{display:inline-flex;align-items:center;gap:6px}
+
+    /* TMDb Search */
+    .tmdbBox{background:#fff;border:1px solid var(--bd);border-radius:16px;padding:10px 12px;box-shadow:0 10px 22px rgba(15,23,42,.06)}
+    .tmdbList{margin-top:8px;max-height:220px;overflow:auto;border:1px solid var(--bd);border-radius:14px}
+    .tmdbItem{display:flex;gap:10px;padding:8px 10px;border-bottom:1px solid #f1f5f9;cursor:pointer;align-items:center}
+    .tmdbItem:hover{background:#f8fafc}
+    .tmdbItem:last-child{border-bottom:0}
+    .tmdbThumb{width:40px;height:56px;border-radius:10px;overflow:hidden;background:#e5e7eb;flex:0 0 auto}
+    .tmdbThumb img{width:100%;height:100%;object-fit:cover}
+    .tmdbName{font-weight:900;font-size:.88rem;min-width:0;flex:1}
+    .tmdbMeta{color:var(--mut);font-size:.78rem}
 
     /* Toast */
     .toast{
@@ -148,7 +174,7 @@
     .toast.err{background:#b91c1c}
     .toast.ok{background:#065f46}
 
-    a.link{color:var(--pri);text-decoration:none;font-weight:700}
+    a.link{color:var(--pri);text-decoration:none;font-weight:900}
     a.link:hover{text-decoration:underline}
     .linksList{display:flex;flex-direction:column;gap:6px}
   </style>
@@ -159,7 +185,7 @@
     <header>
       <div>
         <h1>🎬 Minha Coleção</h1>
-        <p class="sub">Clique em qualquer card para ver detalhes. Série mostra o guia de episódios dentro do modal.</p>
+        <p class="sub">TOPs só aparecem aqui na página principal. Clique em um card para ver detalhes (e episódios se for série).</p>
       </div>
       <div class="row">
         <button class="btn secondary" id="btnRecarregar">Recarregar</button>
@@ -167,6 +193,7 @@
       </div>
     </header>
 
+    <!-- FILTROS -->
     <section class="panel">
       <div class="row" style="justify-content:space-between">
         <div class="row">
@@ -191,6 +218,26 @@
       </div>
     </section>
 
+    <!-- TOPS (SÓ NA PRINCIPAL) -->
+    <section class="panel">
+      <div class="topsGrid">
+        <div class="topBox">
+          <div class="topHead"><b>⭐ Top 10 mais bem avaliados</b><span class="small" id="topBestCount"></span></div>
+          <div class="topList" id="topBest"></div>
+        </div>
+        <div class="topBox">
+          <div class="topHead"><b>⬇️ Top 10 menos avaliados</b><span class="small" id="topWorstCount"></span></div>
+          <div class="topList" id="topWorst"></div>
+        </div>
+        <div class="topBox">
+          <div class="topHead"><b>🆕 Últimos 10 adicionados</b><span class="small" id="topLastCount"></span></div>
+          <div class="topList" id="topLast"></div>
+        </div>
+      </div>
+      <div class="small" style="margin-top:8px">Dica: clique em qualquer item do TOP para abrir o modal daquela mídia.</div>
+    </section>
+
+    <!-- LISTA PRINCIPAL -->
     <section id="lista" class="grid"></section>
   </div>
 
@@ -208,6 +255,31 @@
       </div>
 
       <div class="modalBody">
+
+        <!-- TMDB (aparece somente no create/edit) -->
+        <div id="tmdbSection" class="tmdbBox" style="display:none;margin-bottom:12px">
+          <div class="row" style="justify-content:space-between;align-items:flex-end">
+            <div>
+              <div style="font-weight:900">Buscar no TMDb</div>
+              <div class="small">Digite e clique Buscar. Selecione um resultado para preencher automático.</div>
+            </div>
+            <div class="row">
+              <select id="tmdbType" style="min-width:140px">
+                <option value="movie">Filme</option>
+                <option value="tv">Série</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:8px">
+            <input id="tmdbQuery" placeholder="Ex: Matrix, Lost, Interstellar..." />
+            <button class="btn secondary" id="btnTmdbSearch" type="button">Buscar</button>
+            <button class="btn ghost" id="btnTmdbClear" type="button">Limpar</button>
+          </div>
+
+          <div id="tmdbResults" class="tmdbList" style="display:none"></div>
+        </div>
+
         <div class="layout2">
           <div>
             <div class="bigPoster">
@@ -264,13 +336,12 @@
               <div class="full">
                 <label>Links (onde encontrar) — 1 por linha</label>
                 <textarea id="mLinks" rows="3" placeholder="https://...\nhttps://..."></textarea>
-                <div class="small">No modo Detalhes, esses links ficam clicáveis.</div>
               </div>
 
               <div class="full">
                 <label>Avaliação (0 a 5, com meia estrela)</label>
                 <div class="ratingRow">
-                  <div class="stars" id="starsMidia" title="Clique para definir (meia estrela também)">☆☆☆☆☆</div>
+                  <div class="starsBox" id="starsMidia" title="Clique para definir (meia estrela também)">☆☆☆☆☆</div>
                   <input id="mAvaliacao" placeholder="Ex: 0,5 ou 4.5" inputmode="decimal" style="max-width:220px" />
                   <span class="small">Aceita vírgula ou ponto</span>
                 </div>
@@ -281,7 +352,7 @@
                 <textarea id="mSinopse" rows="3" placeholder="Opcional"></textarea>
               </div>
 
-              <!-- LINKS VISUALIZAÇÃO (só no modo detalhes) -->
+              <!-- LINKS VISUALIZAÇÃO (só no modo view) -->
               <div class="full" id="linksViewBox" style="display:none">
                 <label>Links cadastrados</label>
                 <div class="linksList" id="linksView"></div>
@@ -299,7 +370,7 @@
               <div class="small">Agrupado por temporada e por status.</div>
             </div>
             <div class="row">
-              <button class="btn secondary small" id="btnNovoEp">+ Episódio</button>
+              <button class="btn secondary small" id="btnNovoEp" type="button">+ Episódio</button>
             </div>
           </div>
 
@@ -345,7 +416,7 @@
               <div class="full">
                 <label>Avaliação do episódio (0 a 5, meia estrela)</label>
                 <div class="ratingRow">
-                  <div class="stars" id="starsEp">☆☆☆☆☆</div>
+                  <div class="starsBox" id="starsEp">☆☆☆☆☆</div>
                   <input id="epAvaliacao" placeholder="Ex: 0,5 ou 3.5" inputmode="decimal" style="max-width:220px" />
                 </div>
               </div>
@@ -374,14 +445,17 @@
 
   <div class="toast" id="toast"></div>
 
-  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <script>
     // ======= CONFIGURE AQUI O SEU SUPABASE =======
     const SUPABASE_URL = "https://koytoiwfvwzjvgcqhlal.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtveXRvaXdmdnd6anZnY3FobGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxNDExNzAsImV4cCI6MjA3OTcxNzE3MH0.mrMRUGJFqzOBjj7M4giHcWr5qsqUn_0woVMFikDxrjM";
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // ======= TMDb CONFIG (você já me passou) =======
+    const TMDB_API_KEY = "34d1febeb2c306bd928d270c1990c076";
+    const TMDB_BEARER = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIzNGQxZmViZWIyYzMwNmJkOTI4ZDI3MGMxOTkwYzA3NiIsIm5iZiI6MTc2NDU0NzczNC43MDIwMDAxLCJzdWIiOiI2OTJjZGM5Njg1ZTg0OGEwYjAyNmVhZTYiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.Htppj_TDovsK4-xrjzwZrBduPQJZSy9HErIjkvm8DgY";
+    const TMDB_IMG = "https://image.tmdb.org/t/p/w500";
 
     // ========= Toast =========
     const toast = document.getElementById("toast");
@@ -398,18 +472,13 @@
       if (value === null || value === undefined) return null;
       let s = String(value).trim();
       if (!s) return null;
-
-      // aceita vírgula
       s = s.replace(",", ".");
-
       let n = Number(s);
       if (!Number.isFinite(n)) return null;
-
       n = Math.max(0, Math.min(5, n));
-      n = Math.round(n * 2) / 2; // 0.5 steps
+      n = Math.round(n * 2) / 2;
       return n;
     }
-
     function starsString(r){
       const n = sanitizeRating(r);
       if (n === null) return "☆☆☆☆☆";
@@ -418,18 +487,15 @@
       const empty = Math.max(0, 5 - full - half);
       return "★".repeat(full) + (half ? "⯨" : "") + "☆".repeat(empty);
     }
-
     function bindStars(starsEl, inputEl){
-      function sync(){
-        starsEl.textContent = starsString(inputEl.value);
-      }
+      function sync(){ starsEl.textContent = starsString(inputEl.value); }
       starsEl.addEventListener("click", (ev)=>{
         const rect = starsEl.getBoundingClientRect();
         const x = ev.clientX - rect.left;
         const ratio = Math.max(0, Math.min(1, x / rect.width));
-        let rating = Math.round(ratio * 10) / 2; // 0..5 step 0.5
+        let rating = Math.round(ratio * 10) / 2;
         rating = Math.max(0, Math.min(5, rating));
-        inputEl.value = String(rating).replace(".0","").replace(".", ","); // exibe com vírgula
+        inputEl.value = String(rating).replace(".0","").replace(".", ",");
         sync();
       });
       inputEl.addEventListener("input", sync);
@@ -446,7 +512,6 @@
       if(s==="ASSISTIDOS") return "st-assistidos";
       return "st-nao";
     }
-
     function safePoster(url){
       return url && String(url).trim()
         ? url.trim()
@@ -466,6 +531,14 @@
     const fNota = document.getElementById("fNota");
     const countInfo = document.getElementById("countInfo");
     const lista = document.getElementById("lista");
+
+    // TOPS refs
+    const topBest = document.getElementById("topBest");
+    const topWorst = document.getElementById("topWorst");
+    const topLast = document.getElementById("topLast");
+    const topBestCount = document.getElementById("topBestCount");
+    const topWorstCount = document.getElementById("topWorstCount");
+    const topLastCount = document.getElementById("topLastCount");
 
     // ========= Modal refs =========
     const modalBackdrop = document.getElementById("modalBackdrop");
@@ -491,12 +564,19 @@
     const mLinks = document.getElementById("mLinks");
     const mAvaliacao = document.getElementById("mAvaliacao");
     const mSinopse = document.getElementById("mSinopse");
-
     const starsMidia = document.getElementById("starsMidia");
     bindStars(starsMidia, mAvaliacao);
 
     const linksViewBox = document.getElementById("linksViewBox");
     const linksView = document.getElementById("linksView");
+
+    // TMDb UI
+    const tmdbSection = document.getElementById("tmdbSection");
+    const tmdbType = document.getElementById("tmdbType");
+    const tmdbQuery = document.getElementById("tmdbQuery");
+    const btnTmdbSearch = document.getElementById("btnTmdbSearch");
+    const btnTmdbClear = document.getElementById("btnTmdbClear");
+    const tmdbResults = document.getElementById("tmdbResults");
 
     // ========= Episodes UI =========
     const epsSection = document.getElementById("epsSection");
@@ -513,7 +593,6 @@
     const epAvaliacao = document.getElementById("epAvaliacao");
     const starsEp = document.getElementById("starsEp");
     bindStars(starsEp, epAvaliacao);
-
     const epsGrouped = document.getElementById("epsGrouped");
 
     // ========= Buttons =========
@@ -529,7 +608,7 @@
         return;
       }
       midias = data || [];
-      renderList();
+      renderAll();
       if(showToast) msg("Atualizado ✅","ok");
     }
 
@@ -549,6 +628,56 @@
       }
       eps = data || [];
       renderEpisodes();
+    }
+
+    function renderAll(){
+      renderTops();     // ✅ tops reincluídos
+      renderList();
+    }
+
+    // ========= Tops =========
+    function getCreatedKey(m){
+      // usa created_at se existir, senão id como fallback
+      if(m.created_at) return new Date(m.created_at).getTime() || 0;
+      return Number(m.id)||0;
+    }
+    function renderTopList(container, items){
+      container.innerHTML = "";
+      if(!items.length){
+        container.innerHTML = `<div class="small" style="padding:10px 12px">Sem dados.</div>`;
+        return;
+      }
+      for(const m of items){
+        const div = document.createElement("div");
+        div.className = "topItem";
+        div.onclick = ()=>openModalView(m);
+
+        const n = sanitizeRating(m.avaliacao);
+        div.innerHTML = `
+          <div class="name">${escapeHtml(m.nome||"-")}</div>
+          <div class="note">${n===null? "-" : String(n).replace(".0","")}</div>
+          <div class="stars">${starsString(m.avaliacao)}</div>
+        `;
+        container.appendChild(div);
+      }
+    }
+    function renderTops(){
+      const rated = midias
+        .map(m=>({m, n:sanitizeRating(m.avaliacao)}))
+        .filter(x=>x.n !== null);
+
+      const best = [...rated].sort((a,b)=>b.n - a.n || (getCreatedKey(b.m)-getCreatedKey(a.m))).slice(0,10).map(x=>x.m);
+      const worst = [...rated].sort((a,b)=>a.n - b.n || (getCreatedKey(b.m)-getCreatedKey(a.m))).slice(0,10).map(x=>x.m);
+
+      const last = [...midias].sort((a,b)=>getCreatedKey(b)-getCreatedKey(a)).slice(0,10);
+
+      topBestCount.textContent = `(${best.length})`;
+      topWorstCount.textContent = `(${worst.length})`;
+      topLastCount.textContent = `(${last.length})`;
+
+      renderTopList(topBest, best);
+      renderTopList(topWorst, worst);
+      renderTopList(topLast, last);
     }
 
     // ========= Render list =========
@@ -603,7 +732,7 @@
 
         const meta = document.createElement("div");
         meta.className = "meta";
-        meta.textContent = [m.ano, m.streaming, m.diretores, m.genero].filter(Boolean).join(" • ");
+        meta.textContent = [m.ano, m.streaming].filter(Boolean).join(" • ");
 
         const footer = document.createElement("div");
         footer.className = "footer";
@@ -615,7 +744,7 @@
         const stars = document.createElement("div");
         stars.className = "starsInline";
         const n = sanitizeRating(m.avaliacao);
-        stars.innerHTML = `<span class="mut">${n===null? "-" : n.toFixed(1).replace(".0","")}</span> <span>${starsString(m.avaliacao)}</span>`;
+        stars.innerHTML = `<span class="mut">${n===null? "-" : String(n).replace(".0","")}</span> <span>${starsString(m.avaliacao)}</span>`;
 
         footer.appendChild(st);
         footer.appendChild(stars);
@@ -640,6 +769,11 @@
       btnSalvar.style.display = enabled ? "inline-flex" : "none";
     }
 
+    function normalizeUrl(u){
+      if(/^https?:\/\//i.test(u)) return u;
+      return "https://" + u;
+    }
+
     function fillLinksView(raw){
       const text = (raw || "").trim();
       linksView.innerHTML = "";
@@ -660,12 +794,6 @@
       }
     }
 
-    function normalizeUrl(u){
-      // se o usuário colar "www..." sem http, a gente ajuda
-      if(/^https?:\/\//i.test(u)) return u;
-      return "https://" + u;
-    }
-
     function openBackdrop(){
       modalBackdrop.classList.add("show");
       modalBackdrop.setAttribute("aria-hidden","false");
@@ -677,23 +805,30 @@
       eps = [];
       epsGrouped.innerHTML = "";
       epFormBox.style.display = "none";
+      // limpa TMDb UI
+      tmdbResults.style.display="none";
+      tmdbResults.innerHTML="";
+      tmdbQuery.value="";
     }
 
     btnFechar.onclick = closeBackdrop;
-    modalBackdrop.addEventListener("click",(e)=>{
-      if(e.target === modalBackdrop) closeBackdrop();
-    });
-    window.addEventListener("keydown",(e)=>{
-      if(e.key==="Escape" && modalBackdrop.classList.contains("show")) closeBackdrop();
-    });
+    modalBackdrop.addEventListener("click",(e)=>{ if(e.target === modalBackdrop) closeBackdrop(); });
+    window.addEventListener("keydown",(e)=>{ if(e.key==="Escape" && modalBackdrop.classList.contains("show")) closeBackdrop(); });
+
+    function showTmdbBox(show){
+      tmdbSection.style.display = show ? "block" : "none";
+    }
 
     function openModalCreate(){
       modalMode = "create";
       current = null;
       modalTitle.textContent = "Nova mídia";
-      modalSub.textContent = "Preencha e clique em Salvar.";
+      modalSub.textContent = "Preencha e clique em Salvar (ou use TMDb acima).";
       btnEditar.style.display = "none";
       btnExcluir.style.display = "none";
+
+      // TMDb
+      showTmdbBox(true);
 
       // limpa
       mId.value = "";
@@ -729,6 +864,9 @@
       btnEditar.style.display = "inline-flex";
       btnExcluir.style.display = "inline-flex";
 
+      // TMDb off
+      showTmdbBox(false);
+
       // preencher
       mId.value = m.id;
       mNome.value = m.nome || "";
@@ -749,7 +887,6 @@
 
       fillLinksView(m.links);
 
-      // episódios: se for série, carrega e mostra dentro do modal
       if(m.tipo === "SERIE"){
         epsSection.style.display = "block";
         await loadEps(m.id);
@@ -768,8 +905,10 @@
       modalSub.textContent = `Editando: ${current.nome || ""}`;
       setInputsEnabled(true);
       btnEditar.style.display = "none";
-      // no modo edit, links clicáveis some (pra não duplicar confusão)
       linksViewBox.style.display = "none";
+      showTmdbBox(true); // pode puxar TMDb também no edit
+      // ajusta tipo TMDb conforme mídia
+      tmdbType.value = (mTipo.value === "SERIE") ? "tv" : "movie";
     };
 
     btnSalvar.onclick = async ()=>{
@@ -781,7 +920,7 @@
           streaming: mStreaming.value.trim() || null,
           ano: mAno.value ? Number(mAno.value) : null,
           imagem_url: mImagemUrl.value.trim() || null,
-          links: mLinks.value.trim() || null, // exige coluna links (text)
+          links: mLinks.value.trim() || null,
           avaliacao: sanitizeRating(mAvaliacao.value),
           sinopse: mSinopse.value.trim() || null
         };
@@ -800,7 +939,6 @@
           return;
         }
 
-        // edit
         const id = Number(mId.value);
         const { error } = await db.from("midias").update(payload).eq("id", id);
         if(error) throw error;
@@ -808,13 +946,10 @@
         msg("Mídia atualizada ✅","ok");
         await loadMidias(false);
 
-        // reabrir em modo view já atualizado
         const updated = midias.find(x=>x.id===id) || { ...current, ...payload, id };
         await openModalView(updated);
       }catch(err){
         console.error(err);
-
-        // se não existir coluna links, o erro costuma citar a coluna
         if(String(err?.message||"").toLowerCase().includes("links")){
           msg("Erro: crie a coluna 'links' na tabela midias (tipo text).","err");
         }else{
@@ -826,7 +961,6 @@
     btnExcluir.onclick = async ()=>{
       if(!current) return;
       if(!confirm("Excluir esta mídia?")) return;
-
       const { error } = await db.from("midias").delete().eq("id", current.id);
       if(error){
         console.error(error);
@@ -846,9 +980,7 @@
       epId.value = "";
       epTemp.focus();
     };
-    btnCancelarEp.onclick = ()=>{
-      epFormBox.style.display = "none";
-    };
+    btnCancelarEp.onclick = ()=>{ epFormBox.style.display = "none"; };
 
     function clearEpForm(){
       epId.value = "";
@@ -890,7 +1022,6 @@
           if(error) throw error;
           msg("Episódio salvo ✅","ok");
         }
-
         epFormBox.style.display = "none";
         clearEpForm();
         await loadEps(current.id);
@@ -925,7 +1056,6 @@
     }
 
     function groupEps(){
-      // temporada -> status -> lista
       const map = new Map();
       for(const ep of eps){
         const t = ep.temporada || 0;
@@ -935,16 +1065,13 @@
         if(!m2.has(st)) m2.set(st, []);
         m2.get(st).push(ep);
       }
-      // ordena por temporada
       const seasons = [...map.keys()].sort((a,b)=>a-b);
       return {map, seasons};
     }
 
     function renderEpisodes(){
       epsGrouped.innerHTML = "";
-      if(!current || current.tipo!=="SERIE"){
-        return;
-      }
+      if(!current || current.tipo!=="SERIE") return;
 
       if(!eps.length){
         epsGrouped.innerHTML = `<div class="panel"><span class="small">Nenhum episódio cadastrado ainda.</span></div>`;
@@ -957,7 +1084,6 @@
         det.open = true;
 
         const totalSeason = [...map.get(temporada).values()].reduce((acc,arr)=>acc+arr.length,0);
-
         const sum = document.createElement("summary");
         sum.innerHTML = `Temporada ${temporada} <span class="small">(${totalSeason} episódio(s))</span>`;
         det.appendChild(sum);
@@ -965,7 +1091,6 @@
         const wrap = document.createElement("div");
         wrap.className = "epWrap";
 
-        // ordem de status
         const order = ["ASSISTINDO","ASSISTIDOS","AINDA_NAO_COMECEI"];
         for(const st of order){
           const list = map.get(temporada).get(st) || [];
@@ -990,17 +1115,15 @@
             <tbody></tbody>
           `;
           const tb = table.querySelector("tbody");
-
-          // ordena episódio
           list.sort((a,b)=>(a.numero||0)-(b.numero||0));
 
           for(const ep of list){
-            const tr = document.createElement("tr");
             const nota = sanitizeRating(ep.avaliacao);
+            const tr = document.createElement("tr");
             tr.innerHTML = `
               <td><b>E${String(ep.numero||0).padStart(2,"0")}</b></td>
               <td>
-                <div style="font-weight:800">${escapeHtml(ep.titulo||"-")}</div>
+                <div style="font-weight:900">${escapeHtml(ep.titulo||"-")}</div>
                 <div class="small" style="margin-top:2px;white-space:pre-wrap">${escapeHtml(ep.resumo||"")}</div>
               </td>
               <td>
@@ -1043,7 +1166,137 @@
       }
     }
 
-    // ========= Events =========
+    // ========= TMDb integration =========
+    async function tmdbFetch(path){
+      const url = `https://api.themoviedb.org/3${path}`;
+      const res = await fetch(url, {
+        headers: {
+          "Authorization": `Bearer ${TMDB_BEARER}`,
+          "Content-Type": "application/json;charset=utf-8"
+        }
+      });
+      if(!res.ok){
+        const txt = await res.text().catch(()=> "");
+        throw new Error(`TMDb error ${res.status}: ${txt}`);
+      }
+      return res.json();
+    }
+
+    function showTmdbResults(items, type){
+      tmdbResults.innerHTML = "";
+      if(!items.length){
+        tmdbResults.style.display = "block";
+        tmdbResults.innerHTML = `<div class="small" style="padding:10px 12px">Nada encontrado.</div>`;
+        return;
+      }
+      tmdbResults.style.display = "block";
+
+      items.slice(0, 12).forEach(item=>{
+        const name = type==="movie" ? item.title : item.name;
+        const date = type==="movie" ? item.release_date : item.first_air_date;
+        const year = (date||"").slice(0,4) || "-";
+        const poster = item.poster_path ? (TMDB_IMG + item.poster_path) : safePoster("");
+
+        const div = document.createElement("div");
+        div.className = "tmdbItem";
+        div.innerHTML = `
+          <div class="tmdbThumb"><img src="${poster}" alt=""></div>
+          <div style="min-width:0;flex:1">
+            <div class="tmdbName">${escapeHtml(name||"-")}</div>
+            <div class="tmdbMeta">${year} • ${escapeHtml((item.overview||"").slice(0,80))}${(item.overview||"").length>80?"...":""}</div>
+          </div>
+          <button class="btn secondary small" type="button">Usar</button>
+        `;
+        div.querySelector("button").onclick = async (e)=>{
+          e.stopPropagation();
+          await applyTmdbItem(type, item.id);
+        };
+        tmdbResults.appendChild(div);
+      });
+    }
+
+    async function applyTmdbItem(type, id){
+      try{
+        msg("Buscando detalhes no TMDb...","ok");
+
+        if(type==="movie"){
+          const details = await tmdbFetch(`/movie/${id}?api_key=${TMDB_API_KEY}&language=pt-BR`);
+          const credits = await tmdbFetch(`/movie/${id}/credits?api_key=${TMDB_API_KEY}&language=pt-BR`);
+
+          const director = (credits.crew||[]).filter(c=>c.job==="Director").map(c=>c.name).slice(0,3).join(", ");
+          const genres = (details.genres||[]).map(g=>g.name).slice(0,4).join(", ");
+
+          mTipo.value = "FILME";
+          mNome.value = details.title || mNome.value;
+          mSinopse.value = details.overview || mSinopse.value;
+          mAno.value = (details.release_date||"").slice(0,4) || mAno.value;
+          mImagemUrl.value = details.poster_path ? (TMDB_IMG + details.poster_path) : mImagemUrl.value;
+          if(genres) mStreaming.value = mStreaming.value; // não tem streaming oficial no básico
+          // se você quiser, dá pra guardar diretor/gênero no supabase (se suas colunas existirem)
+          // aqui vamos colocar dentro da sinopse? NÃO. Melhor deixar só preenchimento do que existe.
+          // Se você tiver colunas diretores/genero, me diga e eu adiciono no payload.
+
+          // Atualiza poster preview
+          mPoster.src = safePoster(mImagemUrl.value);
+
+          // Dica de diretor/gênero (sem criar coluna)
+          const hint = [director?("Diretor: "+director):"", genres?("Gênero: "+genres):""].filter(Boolean).join(" • ");
+          if(hint){
+            modalSub.textContent = "TMDb preenchido • " + hint;
+          }else{
+            modalSub.textContent = "TMDb preenchido";
+          }
+
+          msg("Preenchido pelo TMDb ✅","ok");
+          return;
+        }
+
+        // TV (série)
+        const details = await tmdbFetch(`/tv/${id}?api_key=${TMDB_API_KEY}&language=pt-BR`);
+        const credits = await tmdbFetch(`/tv/${id}/credits?api_key=${TMDB_API_KEY}&language=pt-BR`);
+
+        const creators = (details.created_by||[]).map(x=>x.name).slice(0,3).join(", ");
+        // tv/credits tem crew, mas nem sempre vem "Director". Mantemos creators como referência.
+        const genres = (details.genres||[]).map(g=>g.name).slice(0,4).join(", ");
+
+        mTipo.value = "SERIE";
+        mNome.value = details.name || mNome.value;
+        mSinopse.value = details.overview || mSinopse.value;
+        mAno.value = (details.first_air_date||"").slice(0,4) || mAno.value;
+        mImagemUrl.value = details.poster_path ? (TMDB_IMG + details.poster_path) : mImagemUrl.value;
+        mPoster.src = safePoster(mImagemUrl.value);
+
+        const hint = [creators?("Criadores: "+creators):"", genres?("Gênero: "+genres):""].filter(Boolean).join(" • ");
+        modalSub.textContent = hint ? ("TMDb preenchido • " + hint) : "TMDb preenchido";
+
+        msg("Preenchido pelo TMDb ✅","ok");
+      }catch(err){
+        console.error(err);
+        msg("Erro no TMDb (veja o console).","err");
+      }
+    }
+
+    btnTmdbSearch.onclick = async ()=>{
+      const q = tmdbQuery.value.trim();
+      if(!q){ msg("Digite algo para buscar.","err"); return; }
+      try{
+        const type = tmdbType.value; // movie | tv
+        msg("Buscando no TMDb...","ok");
+        const data = await tmdbFetch(`/search/${type}?api_key=${TMDB_API_KEY}&language=pt-BR&query=${encodeURIComponent(q)}&include_adult=false&page=1`);
+        showTmdbResults(data.results||[], type);
+      }catch(err){
+        console.error(err);
+        msg("Falha ao buscar no TMDb.","err");
+      }
+    };
+
+    btnTmdbClear.onclick = ()=>{
+      tmdbQuery.value = "";
+      tmdbResults.style.display="none";
+      tmdbResults.innerHTML="";
+    };
+
+    // ========= Filters events =========
     [fStatus,fTipo].forEach(el=>el.addEventListener("change", renderList));
     [fNome,fNota].forEach(el=>el.addEventListener("input", renderList));
 
@@ -1058,9 +1311,7 @@
     }
 
     // ========= Init =========
-    (async ()=>{
-      await loadMidias(false);
-    })();
+    (async ()=>{ await loadMidias(false); })();
   </script>
 </body>
 </html>
