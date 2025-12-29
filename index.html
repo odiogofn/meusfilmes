@@ -1,400 +1,353 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
+<!doctype html>
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <title>Minha Coleção de Filmes & Séries</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sistema de Tarefas</title>
   <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <div class="app-container">
-    <header class="app-header">
-      <div>
-        <h1>🎬 Minha Coleção de Filmes & Séries</h1>
-        <p class="subtitle">Controle o que você assiste, com notas, franquias e episódios.</p>
+  <header class="topbar">
+    <div class="brand">🧩 Sistema de Tarefas</div>
+    <div class="right">
+      <span id="userBadge" class="badge hidden"></span>
+      <button id="btnLogout" class="btn ghost hidden">Sair</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- PAGE 0 - LOGIN/CADASTRO -->
+    <section id="pageAuth" class="card">
+      <h2>Página 0 — Acesso / Cadastro</h2>
+
+      <div class="grid2">
+        <div>
+          <h3>Login</h3>
+          <label>Email</label>
+          <input id="loginEmail" type="email" placeholder="seuemail@dominio.com" />
+          <label>Senha</label>
+          <input id="loginPass" type="password" placeholder="••••••••" />
+          <button id="btnLogin" class="btn primary">Entrar</button>
+          <p id="loginMsg" class="msg"></p>
+        </div>
+
+        <div>
+          <h3>Cadastro (fica PENDENTE até gestor ativar)</h3>
+
+          <label>Login (apelido)</label>
+          <input id="regLogin" type="text" placeholder="ex: diogo" />
+
+          <label>Nome e sobrenome</label>
+          <input id="regName" type="text" placeholder="Ex: Diogo Fernandes" />
+
+          <label>Email</label>
+          <input id="regEmail" type="email" placeholder="seuemail@dominio.com" />
+
+          <label>Senha</label>
+          <input id="regPass" type="password" placeholder="••••••••" />
+
+          <label>Confirmar senha</label>
+          <input id="regPass2" type="password" placeholder="••••••••" />
+
+          <label>Perfil</label>
+          <select id="regRole">
+            <option value="SUPORTE">SUPORTE</option>
+            <option value="PROGRAMADOR">PROGRAMADOR</option>
+            <option value="GESTOR">GESTOR</option>
+          </select>
+
+          <button id="btnRegister" class="btn">Cadastrar</button>
+          <p id="regMsg" class="msg"></p>
+        </div>
       </div>
-      <nav class="header-actions">
-        <button id="btn-ir-principal" class="btn secondary">Ir para aba Assistindo</button>
-        <button id="btn-ir-gerir" class="btn primary">Gerir Coleção</button>
-      </nav>
-    </header>
 
-    <!-- ===================== VIEW PRINCIPAL (LISTA / DASHBOARD) ===================== -->
-    <main id="view-principal" class="view active">
-      <section class="filters-card">
-        <h2>Filtrar mídias</h2>
-        <div class="filters-grid">
-          <div class="form-field">
-            <label for="filtro-busca-nome">Buscar por nome</label>
-            <input id="filtro-busca-nome" type="text" placeholder="Ex: Lost, Matrix..." />
-          </div>
-          <div class="form-field">
-            <label for="filtro-nota-min">Nota mínima (⭐)</label>
-            <input id="filtro-nota-min" type="number" min="0" max="5" step="0.5" placeholder="Ex: 3.5" />
-          </div>
-          <div class="form-field">
-            <label for="filtro-streaming">Streaming</label>
-            <select id="filtro-streaming">
-              <option value="">Todos</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label for="filtro-ano">Ano</label>
-            <select id="filtro-ano">
-              <option value="">Todos</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label for="filtro-genero">Gênero</label>
-            <select id="filtro-genero">
-              <option value="">Todos</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label for="filtro-diretor">Diretor / Criador</label>
-            <select id="filtro-diretor">
-              <option value="">Todos</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label for="filtro-franquia">Franquia</label>
-            <select id="filtro-franquia">
-              <option value="">Todas</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label for="filtro-tipo">Tipo</label>
-            <select id="filtro-tipo">
-              <option value="">Filmes e Séries</option>
-              <option value="FILME">Filmes</option>
-              <option value="SERIE">Séries</option>
-            </select>
-          </div>
-        </div>
-      </section>
+      <div class="note">
+        <b>Regras:</b>
+        <ul>
+          <li><b>PROGRAMADOR</b>: só vê demandas encaminhadas para ele + comentários nelas.</li>
+          <li><b>SUPORTE</b>: cadastra clientes e demandas; edita/exclui apenas demandas criadas por ele; demandas dos outros = só leitura.</li>
+          <li><b>GESTOR</b>: tudo do suporte + página de gestão (ativa usuários etc.).</li>
+        </ul>
+      </div>
+    </section>
 
-      <section class="tabs-card">
-        <div class="tabs">
-          <button class="tab active" data-status="">Todos</button>
-          <button class="tab" data-status="ASSISTINDO">Assistindo</button>
-          <button class="tab" data-status="ASSISTIDOS">Assistidos</button>
-          <button class="tab" data-status="AINDA_NAO_COMECEI">Ainda não comecei</button>
-        </div>
-      </section>
+    <!-- NAV -->
+    <nav id="nav" class="tabs hidden">
+      <button class="tab" data-tab="clients">Página 1 — Clientes</button>
+      <button class="tab" data-tab="demands">Página 2 — Demandas</button>
+      <button class="tab" data-tab="manage">Página 3 — Gestão</button>
+    </nav>
 
-      <!-- Destaques só na página principal -->
-      <section class="highlights-grid">
-        <div class="highlight-box">
-          <h2>⭐ Top 10 mais bem avaliados</h2>
-          <ul id="lista-top-mais"></ul>
-        </div>
-        <div class="highlight-box">
-          <h2>⚠️ Top 10 menos avaliados</h2>
-          <ul id="lista-top-menos"></ul>
-        </div>
-        <div class="highlight-box">
-          <h2>🆕 Últimos 10 adicionados</h2>
-          <ul id="lista-top-recentes"></ul>
-        </div>
-      </section>
+    <!-- BLOQUEIO PENDENTE -->
+    <section id="pendingBox" class="card hidden">
+      <h2>Seu acesso está PENDENTE</h2>
+      <p>Um gestor precisa ativar seu usuário para você usar o sistema.</p>
+      <p class="muted">Se você for o primeiro gestor, ative seu status manualmente na tabela <b>profiles</b> (status = ATIVO).</p>
+    </section>
 
-      <!-- Coleções de franquias -->
-      <section class="franquias-section">
-        <h2>Coleções de Franquias</h2>
-        <p class="small-note">
-          Clique em uma franquia para filtrar a lista principal apenas por ela.
-        </p>
-        <div class="franquias-subtabs">
-          <button class="subtab active" data-franquia-tipo="todos">Todas</button>
-          <button class="subtab" data-franquia-tipo="FILME">Filmes</button>
-          <button class="subtab" data-franquia-tipo="SERIE">Séries</button>
-        </div>
-        <div id="franquias-grid" class="franquias-grid"></div>
-      </section>
+    <!-- PAGE 1 - CLIENTES -->
+    <section id="pageClients" class="card hidden">
+      <h2>Página 1 — Cadastro de Clientes</h2>
 
-      <section class="cards-section">
-        <h2>Minha lista</h2>
-        <div id="midias-list" class="cards-grid"></div>
-      </section>
-    </main>
+      <div class="toolbar">
+        <button id="btnRefreshClients" class="btn ghost">Atualizar</button>
+      </div>
 
-    <!-- ===================== VIEW GERIR COLEÇÃO ===================== -->
-    <main id="view-gerir" class="view">
-      <section class="panel">
-        <header class="panel-header">
+      <div id="clientForm" class="block">
+        <h3>Novo cliente</h3>
+        <div class="grid2">
           <div>
-            <h2>Gerir Coleção</h2>
-            <p>Cadastre e edite filmes e séries. Episódios são geridos em outra tela.</p>
+            <label>Cliente</label>
+            <input id="cCliente" type="text" placeholder="Ex: Prefeitura X" />
           </div>
-          <button id="btn-voltar-principal" class="btn secondary">Voltar para Assistindo</button>
-        </header>
-
-        <form id="midia-form" class="form-grid">
-          <div class="form-field full">
-            <label for="nome">Nome da mídia</label>
-            <input id="nome" type="text" placeholder="Ex: Lost, Matrix..." required />
+          <div>
+            <label>Entidade</label>
+            <input id="cEntidade" type="text" placeholder="Ex: Câmara Municipal..." />
           </div>
-
-          <div class="form-field full">
-            <label for="sinopse">Sinopse (descrição da mídia)</label>
-            <textarea id="sinopse" rows="3" placeholder="Sinopse do filme ou série"></textarea>
-          </div>
-
-          <div class="form-field">
-            <label for="diretor">Diretor(es) / Criador(es)</label>
-            <input id="diretor" type="text" placeholder="Ex: Wachowski, Damon Lindelof..." />
-          </div>
-
-          <div class="form-field">
-            <label for="genero">Gênero</label>
-            <input id="genero" type="text" placeholder="Ex: Ação / Drama / Sci-fi..." />
-          </div>
-
-          <div class="form-field">
-            <label for="data-lancamento">Data de lançamento</label>
-            <input id="data-lancamento" type="date" />
-          </div>
-
-          <div class="form-field">
-            <label for="ano">Ano de lançamento</label>
-            <input id="ano" type="number" min="1900" max="2100" placeholder="Ex: 2025" />
-          </div>
-
-          <div class="form-field">
-            <label for="streaming">Streaming</label>
-            <input id="streaming" type="text" placeholder="Ex: Netflix, Prime Video..." />
-          </div>
-
-          <div class="form-field">
-            <label for="tipo">Tipo</label>
-            <select id="tipo" required>
-              <option value="">Selecione...</option>
-              <option value="FILME">Filme</option>
-              <option value="SERIE">Série</option>
+          <div>
+            <label>Tipo Entidade</label>
+            <select id="cTipo">
+              <option value="CM">CM</option>
+              <option value="PM">PM</option>
+              <option value="CONSORCIO">CONSORCIO</option>
+              <option value="AUTARQUIA">AUTARQUIA</option>
+              <option value="INSTITUTO">INSTITUTO</option>
             </select>
           </div>
-
-          <div class="form-field">
-            <label for="numero-temporadas">Número de temporadas (séries)</label>
-            <input id="numero-temporadas" type="number" min="0" placeholder="Ex: 6" />
-          </div>
-
-          <div class="form-field">
-            <label for="numero-episodios">Número de episódios (séries)</label>
-            <input id="numero-episodios" type="number" min="0" placeholder="Ex: 121" />
-          </div>
-
-          <div class="form-field">
-            <label for="franquia">Franquia / Coleção</label>
-            <input id="franquia" type="text" placeholder="Ex: Matrix, Star Wars..." />
-          </div>
-
-          <div class="form-field">
-            <label for="status">Status</label>
-            <select id="status">
-              <option value="ASSISTINDO">Assistindo</option>
-              <option value="ASSISTIDOS">Assistidos</option>
-              <option value="AINDA_NAO_COMECEI">Ainda não comecei</option>
+          <div>
+            <label>Estado</label>
+            <select id="cEstado">
+              <option value="CE">CE</option>
+              <option value="MA">MA</option>
+              <option value="RN">RN</option>
+              <option value="AP">AP</option>
+              <option value="PA">PA</option>
             </select>
           </div>
+        </div>
+        <button id="btnCreateClient" class="btn primary">Salvar cliente</button>
+        <p id="clientsMsg" class="msg"></p>
+      </div>
 
-          <div class="form-field full">
-            <label>Avaliação (1 a 5 estrelas, com meia estrela)</label>
-            <div class="rating-control">
-              <div id="midia-rating-stars" class="rating-stars">☆☆☆☆☆</div>
-              <input id="avaliacao" type="number" min="0" max="5" step="0.5" placeholder="Ex: 4.5" />
+      <h3>Lista de clientes</h3>
+      <input id="clientSearch" class="search" placeholder="Filtrar por cliente/entidade/estado..." />
+      <div id="clientsList" class="list"></div>
+    </section>
+
+    <!-- PAGE 2 - DEMANDAS -->
+    <section id="pageDemands" class="card hidden">
+      <h2>Página 2 — Demandas</h2>
+
+      <!-- DASHBOARD -->
+      <div class="block">
+        <div class="dash-head">
+          <h3 style="margin:0;">Dashboard</h3>
+          <div class="dash-actions">
+            <button id="btnRefreshDashboard" class="btn ghost">Atualizar dashboard</button>
+          </div>
+        </div>
+
+        <div class="dash-grid">
+          <div class="dash-card">
+            <div class="dash-title">Por Status</div>
+            <div id="dashStatus" class="dash-row"></div>
+          </div>
+
+          <div class="dash-card">
+            <div class="dash-title">Por Responsável (Top)</div>
+            <div id="dashResp" class="dash-col"></div>
+          </div>
+        </div>
+
+        <p id="dashMsg" class="msg"></p>
+      </div>
+
+      <div class="toolbar">
+        <button id="btnRefreshDemands" class="btn ghost">Atualizar lista</button>
+      </div>
+
+      <!-- FORM NOVA DEMANDA -->
+      <div class="block">
+        <h3>Nova demanda</h3>
+
+        <label>Localize o cliente</label>
+        <select id="dClientSelect">
+          <option value="">— selecione —</option>
+        </select>
+
+        <div class="grid2">
+          <div>
+            <label>Cliente</label>
+            <input id="dCliente" type="text" readonly />
+          </div>
+          <div>
+            <label>Entidade</label>
+            <input id="dEntidade" type="text" readonly />
+          </div>
+          <div>
+            <label>Tipo Entidade</label>
+            <input id="dTipo" type="text" readonly />
+          </div>
+          <div>
+            <label>Estado</label>
+            <input id="dEstado" type="text" readonly />
+          </div>
+        </div>
+
+        <div id="dFields" class="disabled">
+          <div class="grid2">
+            <div>
+              <label>Responsável</label>
+              <input id="dResponsavel" type="text" placeholder="Ex: Fulano" />
+            </div>
+            <div>
+              <label>Status</label>
+              <select id="dStatus">
+                <option value="ABERTURA">ABERTURA</option>
+                <option value="PROGRAMACAO">PROGRAMAÇÃO</option>
+                <option value="EM_ANALISE">EM ANÁLISE</option>
+                <option value="CONCLUIDO">CONCLUÍDO</option>
+              </select>
             </div>
           </div>
 
-          <div class="form-field full">
-            <label for="imagem-url">URL do pôster</label>
-            <input id="imagem-url" type="url" placeholder="https://.../poster.jpg" />
+          <label>Assunto (separe por vírgula, vira TAG)</label>
+          <input id="dAssunto" type="text" placeholder="ex: eSocial, S-2200, relatório" />
+          <div id="assuntoPreview" class="tags"></div>
+
+          <label>Atendimento (texto)</label>
+          <textarea id="dAtendimento" rows="4" placeholder="Descreva o atendimento..."></textarea>
+
+          <div class="grid2">
+            <div>
+              <label>Trello (link)</label>
+              <input id="dTrello" type="url" placeholder="https://trello.com/..." />
+            </div>
+            <div>
+              <label>Email (código)</label>
+              <input id="dEmailCod" type="text" placeholder="ex: 2025-000123" />
+            </div>
           </div>
 
-          <!-- Campo oculto para TMDb ID -->
-          <input id="tmdb-id" type="hidden" />
+          <label>Canal de Atendimento (separe por vírgula, vira TAG)</label>
+          <input id="dCanal" type="text" placeholder="ex: WhatsApp, Telefone, Presencial" />
+          <div id="canalPreview" class="tags"></div>
 
-          <div class="form-actions full">
-            <button id="btn-salvar-midia" type="submit" class="btn primary">
-              <span>💾</span> <span>Salvar</span>
-            </button>
-            <button id="btn-cancelar-edicao-midia" type="button" class="btn ghost" style="display:none;">
-              Cancelar edição
-            </button>
-          </div>
-        </form>
-      </section>
-
-      <section class="panel">
-        <header class="panel-header">
-          <div>
-            <h2>Buscar na TMDb</h2>
-            <p>Preencha automaticamente os dados usando a API da TMDb.</p>
-          </div>
-        </header>
-        <div class="tmdb-search">
-          <div class="form-field">
-            <label for="tmdb-query">Buscar título na TMDb</label>
-            <input id="tmdb-query" type="text" placeholder="Ex: Matrix, Lost..." />
-          </div>
-          <button id="btn-tmdb-buscar" class="btn secondary">Buscar</button>
-        </div>
-        <div id="tmdb-resultados" class="tmdb-resultados"></div>
-      </section>
-
-      <section class="panel">
-        <header class="panel-header">
-          <div>
-            <h2>Importar / Exportar coleção (JSON)</h2>
-            <p>Faça backup ou carregue mídias em massa.</p>
-          </div>
-        </header>
-        <div class="import-export-row">
-          <div>
-            <button id="btn-export-midias" class="btn secondary">Exportar mídias (JSON)</button>
-            <button id="btn-export-modelo-midias" class="btn ghost">Baixar modelo de JSON</button>
-          </div>
-          <div class="import-group">
-            <input id="input-import-midias" type="file" accept="application/json" />
-            <button id="btn-import-midias" class="btn primary">Importar JSON</button>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel">
-        <header class="panel-header">
-          <div>
-            <h2>Lista de mídias (para gerenciamento)</h2>
-            <p>Edite ou exclua itens da coleção.</p>
-          </div>
-        </header>
-        <div class="table-wrapper">
-          <table class="midias-table">
-            <thead>
-              <tr>
-                <th>Pôster</th>
-                <th>Nome</th>
-                <th>Tipo</th>
-                <th>Streaming</th>
-                <th>Status</th>
-                <th>Nota</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody id="tabela-gerir-midias"></tbody>
-          </table>
-        </div>
-      </section>
-    </main>
-
-    <!-- ===================== VIEW EPISÓDIOS ===================== -->
-    <main id="view-episodios" class="view">
-      <section class="panel">
-        <header class="panel-header">
-          <div>
-            <h2 id="episodios-titulo">Guia de episódios</h2>
-            <p id="episodios-subtitulo" class="small-note"></p>
-          </div>
-          <button id="btn-voltar-principal-de-episodios" class="btn secondary">
-            ← Voltar para Assistindo
-          </button>
-        </header>
-
-        <div id="episodios-resumo" class="episodios-resumo"></div>
-
-        <div class="filters-grid">
-          <div class="form-field">
-            <label for="filtro-episodio-temporada">Temporada</label>
-            <select id="filtro-episodio-temporada">
-              <option value="">Todas</option>
+          <div id="encaminharBox" class="hidden">
+            <label>Encaminhar (usuários)</label>
+            <select id="dEncaminhar">
+              <option value="">— selecione —</option>
             </select>
           </div>
-          <div class="form-field">
-            <label for="filtro-episodio-status">Status</label>
-            <select id="filtro-episodio-status">
-              <option value="">Todos</option>
-              <option value="ASSISTINDO">Assistindo</option>
-              <option value="ASSISTIDOS">Assistidos</option>
-              <option value="AINDA_NAO_COMECEI">Ainda não comecei</option>
-            </select>
-          </div>
-        </div>
-      </section>
 
-      <section class="panel">
-        <header class="panel-header">
-          <div>
-            <h2>Episódios por temporada</h2>
-            <p>Clique para editar ou cadastrar novos episódios.</p>
-          </div>
-          <div class="panel-header-actions">
-            <button id="btn-novo-episodio" class="btn primary">+ Novo episódio</button>
-            <button id="btn-export-episodios" class="btn secondary">Exportar episódios (JSON)</button>
-            <label class="btn ghost file-label">
-              Importar JSON
-              <input id="input-import-episodios" type="file" accept="application/json" hidden />
-            </label>
-          </div>
-        </header>
-        <div id="episodios-container" class="episodios-container"></div>
-      </section>
-
-      <!-- Modal de episódio -->
-      <div id="episodio-modal-backdrop" class="modal-backdrop hidden">
-        <div class="modal">
-          <header class="modal-header">
-            <h3 id="episodio-modal-titulo">Novo episódio</h3>
-          </header>
-          <div class="modal-body">
-            <form id="episodio-form" class="form-grid">
-              <div class="form-field">
-                <label for="episodio-temporada">Temporada</label>
-                <input id="episodio-temporada" type="number" min="1" required />
-              </div>
-              <div class="form-field">
-                <label for="episodio-numero">Número do episódio</label>
-                <input id="episodio-numero" type="number" min="1" required />
-              </div>
-              <div class="form-field full">
-                <label for="episodio-titulo">Título</label>
-                <input id="episodio-titulo" type="text" placeholder="Título do episódio" />
-              </div>
-              <div class="form-field full">
-                <label for="episodio-resumo">Resumo do episódio</label>
-                <textarea id="episodio-resumo" rows="3" placeholder="Resumo / sinopse do episódio"></textarea>
-              </div>
-              <div class="form-field">
-                <label for="episodio-status">Status</label>
-                <select id="episodio-status">
-                  <option value="AINDA_NAO_COMECEI">Ainda não comecei</option>
-                  <option value="ASSISTINDO">Assistindo</option>
-                  <option value="ASSISTIDOS">Assistidos</option>
-                </select>
-              </div>
-              <div class="form-field full">
-                <label>Avaliação (1 a 5 estrelas, com meia estrela)</label>
-                <div class="rating-control">
-                  <div id="episodio-rating-stars" class="rating-stars">☆☆☆☆☆</div>
-                  <input id="episodio-avaliacao" type="number" min="0" max="5" step="0.5" placeholder="Ex: 4.0" />
-                </div>
-              </div>
-            </form>
-          </div>
-          <footer class="modal-footer">
-            <button id="btn-salvar-episodio" class="btn primary">Salvar</button>
-            <button id="btn-cancelar-episodio" class="btn ghost">Cancelar</button>
-          </footer>
+          <button id="btnCreateDemand" class="btn primary">Salvar demanda</button>
+          <p id="demandsMsg" class="msg"></p>
         </div>
       </div>
-    </main>
-  </div>
 
-  <!-- Toast de mensagens -->
-  <div id="toast" class="toast hidden"></div>
+      <!-- FILTROS + PAGINAÇÃO -->
+      <h3>Lista de demandas</h3>
 
-  <!-- Supabase JS -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- App -->
+      <div class="filters">
+        <div class="grid2">
+          <input id="demandSearch" class="search" placeholder="Buscar por cliente/entidade/atendimento/responsável/email..." />
+          <select id="demandStatusFilter">
+            <option value="">Todos status</option>
+            <option value="ABERTURA">ABERTURA</option>
+            <option value="PROGRAMACAO">PROGRAMAÇÃO</option>
+            <option value="EM_ANALISE">EM ANÁLISE</option>
+            <option value="CONCLUIDO">CONCLUÍDO</option>
+          </select>
+        </div>
+
+        <div class="filter-row">
+          <label class="check">
+            <input type="checkbox" id="filterMine" />
+            <span>Minhas demandas (SUPORTE)</span>
+          </label>
+
+          <label class="check">
+            <input type="checkbox" id="filterAssignedToMe" />
+            <span>Encaminhadas a mim (PROGRAMADOR)</span>
+          </label>
+
+          <select id="pageSize">
+            <option value="10">10 por página</option>
+            <option value="20">20 por página</option>
+            <option value="50">50 por página</option>
+          </select>
+        </div>
+
+        <div class="pager">
+          <button id="btnPrev" class="btn ghost">◀ Anterior</button>
+          <div class="pager-info" id="pagerInfo">Página 1</div>
+          <button id="btnNext" class="btn ghost">Próxima ▶</button>
+        </div>
+      </div>
+
+      <div id="demandsList" class="list"></div>
+
+      <!-- MODAL: EDIÇÃO DE DEMANDA -->
+      <div id="modalEdit" class="modal hidden">
+        <div class="modal-content">
+          <div class="modal-head">
+            <h3 id="editTitle">Editar Demanda</h3>
+            <button id="btnCloseEdit" class="btn ghost">Fechar</button>
+          </div>
+
+          <div id="editBody"></div>
+          <p id="editMsg" class="msg"></p>
+
+          <div class="modal-foot">
+            <button id="btnSaveEdit" class="btn primary">Salvar alterações</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODAL: COMENTÁRIOS -->
+      <div id="modal" class="modal hidden">
+        <div class="modal-content">
+          <div class="modal-head">
+            <h3 id="modalTitle">Atualizações</h3>
+            <button id="btnCloseModal" class="btn ghost">Fechar</button>
+          </div>
+          <div id="modalBody"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 3 - GESTÃO -->
+    <section id="pageManage" class="card hidden">
+      <h2>Página 3 — Gestão do Sistema (somente GESTOR)</h2>
+
+      <div class="toolbar">
+        <button id="btnRefreshManage" class="btn ghost">Atualizar</button>
+      </div>
+
+      <div class="block">
+        <h3>Usuários cadastrados</h3>
+        <div id="usersList" class="list"></div>
+      </div>
+
+      <div class="block">
+        <h3>Top 5 últimas demandas cadastradas</h3>
+        <div id="top5last" class="list"></div>
+      </div>
+
+      <div class="block">
+        <h3>Top 5 por status</h3>
+        <select id="top5Status">
+          <option value="ABERTURA">ABERTURA</option>
+          <option value="PROGRAMACAO">PROGRAMAÇÃO</option>
+          <option value="EM_ANALISE">EM ANÁLISE</option>
+          <option value="CONCLUIDO">CONCLUÍDO</option>
+        </select>
+        <div id="top5statusList" class="list"></div>
+      </div>
+    </section>
+  </main>
+
   <script src="app.js"></script>
 </body>
 </html>
