@@ -795,8 +795,18 @@
     function safePoster(url){
       return url && String(url).trim()
         ? url.trim()
-        : "https://via.placeholder.com/300x450.png?text=Sem+Imagem";
+        : "https://placehold.co/300x450.png?text=Sem+Imagem";
     }
+
+function pickNotStartedStatus(existingStatuses){
+  // Seu banco pode usar "AINDA_NAO_COMECEI" OU "AINDA NÃO COMECEI".
+  const set = new Set((existingStatuses||[]).map(x=>String(x||"").trim()).filter(Boolean));
+  if(set.has("AINDA NÃO COMECEI")) return "AINDA NÃO COMECEI";
+  if(set.has("AINDA NAO COMECEI")) return "AINDA NAO COMECEI";
+  // fallback (padrão do app)
+  return "AINDA_NAO_COMECEI";
+}
+
     function escapeHtml(str){
       return String(str ?? "")
         .replaceAll("&","&amp;")
@@ -894,7 +904,7 @@
 
       // fallback: buscar direto no banco
       const { data, error } = await db.from("midias").select("*").eq("id", id).maybeSingle();
-      if(error) throw error;
+      if(error){ console.error("Supabase insert error:", error); throw error; }
       if(data){
         // atualiza cache
         midias = [data, ...midias.filter(x=>String(x.id)!==String(id))];
@@ -975,7 +985,7 @@
     const role = c.character || "";
     const path = c.profile_path ? (c.profile_path.startsWith("http") ? c.profile_path : (TMDB_PROFILE + c.profile_path)) : "";
     const big = c.profile_path ? (c.profile_path.startsWith("http") ? c.profile_path : (TMDB_PROFILE_BIG + c.profile_path)) : "";
-    const img = path || "https://via.placeholder.com/185x278.png?text=Sem+Foto";
+    const img = path || "https://placehold.co/185x278.png?text=Sem+Foto";
     return `
       <div class="castCard" data-big="${escapeHtml(big)}" title="Clique para ampliar">
         <div class="castImg"><img src="${img}" alt=""></div>
@@ -997,7 +1007,7 @@
 
       // 2) senão, busca episódios e infere
       const { data, error } = await db.from("episodios").select("temporada").eq("midia_id", m.id);
-      if(error) throw error;
+      if(error){ console.error("Supabase insert error:", error); throw error; }
       const map = new Map();
       (data||[]).forEach(r=>{
         const t = Number(r.temporada||0);
@@ -1182,7 +1192,7 @@
           return u.startsWith("http") ? u : ("https://" + u);
         }
       }catch{}
-      return "https://via.placeholder.com/320x180.png?text=Sem+Imagem";
+      return "https://placehold.co/320x180.png?text=Sem+Imagem";
     }
     function pickEpisodeStillBig(ep){
       try{
@@ -1227,7 +1237,7 @@ try{
     .eq("midia_id", m.id)
     .eq("temporada", temporada)
     .order("numero",{ascending:true});
-  if(error) throw error;
+  if(error){ console.error("Supabase insert error:", error); throw error; }
   listUser = data || [];
 }catch(err){
   console.error(err);
@@ -1391,13 +1401,13 @@ if(btnImport){
       }
 
       const { error } = await db.from("episodios").insert(toInsert);
-      if(error) throw error;
+      if(error){ console.error("Supabase insert error:", error); throw error; }
 
       msg(`Importados ${toInsert.length} episódio(s) ✅`,"ok");
       await renderSeasonPage(m.id, temporada);
     }catch(err){
       console.error(err);
-      msg("Erro ao importar (veja o console).","err");
+      msg(`Erro ao importar: ${err?.message || "veja o console"}`,"err");
     }finally{
       try{
         btnImport.disabled = false;
@@ -1430,7 +1440,7 @@ if(btnImport){
           // acha episódio no cache? buscamos no banco rápido:
           try{
             const { data, error } = await db.from("episodios").select("*").eq("id", epIdStr).maybeSingle();
-            if(error) throw error;
+            if(error){ console.error("Supabase insert error:", error); throw error; }
             if(data){
               editEp(data);
               // rola pro formulário
@@ -1450,10 +1460,10 @@ if(btnImport){
         if(e.target.closest(".btnEpAssistindo") || e.target.closest(".btnEpAssistidos") || e.target.closest(".btnEpNao")){
           const newStatus = e.target.closest(".btnEpAssistindo") ? "ASSISTINDO"
                           : e.target.closest(".btnEpAssistidos") ? "ASSISTIDOS"
-                          : "AINDA_NAO_COMECEI";
+                          : pickNotStartedStatus((listUser||[]).map(u=>u.status));
           try{
             const { error } = await db.from("episodios").update({ status: newStatus }).eq("id", epIdStr);
-            if(error) throw error;
+            if(error){ console.error("Supabase insert error:", error); throw error; }
             msg("Status atualizado ✅","ok");
             await renderSeasonPage(m.id, temporada);
           }catch(err){
@@ -2031,7 +2041,7 @@ if(btnImport){
 
         if(modalMode === "create"){
           const { error } = await db.from("midias").insert(payload);
-          if(error) throw error;
+          if(error){ console.error("Supabase insert error:", error); throw error; }
           msg("Mídia criada ✅","ok");
           await loadMidias(false);
           closeBackdrop();
@@ -2040,7 +2050,7 @@ if(btnImport){
 
         const id = mId.value; // uuid string (SEM Number)
         const { error } = await db.from("midias").update(payload).eq("id", id);
-        if(error) throw error;
+        if(error){ console.error("Supabase insert error:", error); throw error; }
 
         msg("Mídia atualizada ✅","ok");
         await loadMidias(false);
@@ -2111,11 +2121,11 @@ if(btnImport){
       try{
         if(epId.value){
           const { error } = await db.from("episodios").update(payload).eq("id", epId.value); // uuid string
-          if(error) throw error;
+          if(error){ console.error("Supabase insert error:", error); throw error; }
           msg("Episódio atualizado ✅","ok");
         }else{
           const { error } = await db.from("episodios").insert(payload);
-          if(error) throw error;
+          if(error){ console.error("Supabase insert error:", error); throw error; }
           msg("Episódio salvo ✅","ok");
         }
         epFormBox.style.display = "none";
