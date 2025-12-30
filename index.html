@@ -422,7 +422,20 @@
   padding:14px;color:#fff;background:linear-gradient(90deg, rgba(2,6,23,.96), rgba(2,6,23,.75));
   font-weight:750
 }
-</style>
+
+/* ====== Stats bar (estilo TMDb) ====== */
+.statsBar{
+  display:flex;gap:14px;flex-wrap:wrap;align-items:center;
+  padding:10px 12px;margin:10px 0 6px;
+  background:#fff;border:1px solid var(--bd);border-radius:18px;
+  box-shadow:0 12px 28px rgba(15,23,42,.06);
+}
+.statItem{display:flex;gap:8px;align-items:center}
+.statIcon{width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center}
+.statNum{font-weight:900}
+.statLbl{color:var(--mut);font-weight:750}
+.statSep{width:1px;height:18px;background:var(--bd);opacity:.9}
+  </style>
 </head>
 
 <body>
@@ -2434,6 +2447,79 @@ async function fetchSeriesProgress(midiaId){
 }
 
 function pct(a,b){ if(!b) return 0; return Math.max(0, Math.min(100, Math.round((a/b)*100))); }
+
+function toInt(x){ const n = Number(x); return Number.isFinite(n) ? n : 0; }
+
+function fmtHhMm(mins){
+  mins = Math.max(0, Math.round(toInt(mins)));
+  const h = Math.floor(mins/60);
+  const m = mins % 60;
+  return `${h}h${String(m).padStart(2,"0")}min`;
+}
+
+function countComments(m){
+  // aceita: comentarios (string|array|number), comentario (string), notes (string)
+  const v = (m.comentarios ?? m.comentario ?? m.notes ?? "");
+  if(typeof v === "number") return v > 0 ? v : 0;
+  if(Array.isArray(v)) return v.length;
+  if(typeof v === "string") return v.trim() ? 1 : 0;
+  return 0;
+}
+
+function isFav(m){
+  // aceita campos comuns: favorito, is_favorite, favorite
+  const v = (m.favorito ?? m.is_favorite ?? m.favorite ?? false);
+  return v === true || v === 1 || v === "1" || v === "true" || v === "SIM";
+}
+
+function isWant(m){
+  // aceita: quero_ver boolean, ou status/estado custom
+  const v = (m.quero_ver ?? m.want_to_watch ?? "");
+  if(v === true || v === 1 || v === "1" || v === "true" || v === "SIM") return true;
+  const st = String(m.status||"").toUpperCase();
+  return ["QUERO_VER","QUEROVER","WATCHLIST","TO_WATCH","WANT_TO_WATCH"].includes(st);
+}
+
+function isDont(m){
+  const v = (m.nao_quero_ver ?? m.dont_watch ?? m.dont_want ?? "");
+  if(v === true || v === 1 || v === "1" || v === "true" || v === "SIM") return true;
+  const st = String(m.status||"").toUpperCase();
+  return ["NAO_QUERO_VER","NÃO_QUERO_VER","DONT_WATCH","DO_NOT_WATCH","SKIP"].includes(st);
+}
+
+function renderStatsBar(arr){
+  const el = document.getElementById("statsBar");
+  if(!el) return;
+
+  const comentarios = arr.reduce((acc,m)=>acc+countComments(m),0);
+  const avaliacoes = arr.filter(m => m.avaliacao !== null && m.avaliacao !== undefined && String(m.avaliacao).trim() !== "").length;
+  const favoritos = arr.filter(isFav).length;
+
+  const filmesAssistidos = arr.filter(m => String(m.tipo).toUpperCase()==="FILME" && String(m.status).toUpperCase()==="ASSISTIDOS").length;
+  const queroVer = arr.filter(isWant).length;
+  const naoQueroVer = arr.filter(isDont).length;
+
+  const minsFilmesAssistidos = arr
+    .filter(m => String(m.tipo).toUpperCase()==="FILME" && String(m.status).toUpperCase()==="ASSISTIDOS")
+    .reduce((acc,m)=> acc + toInt(m.runtime), 0);
+
+  el.style.display = "flex";
+  el.innerHTML = `
+    <div class="statItem"><span class="statIcon">💬</span><span class="statNum">${comentarios}</span> <span class="statLbl">comentários</span></div>
+    <div class="statSep"></div>
+    <div class="statItem"><span class="statIcon">⭐</span><span class="statNum">${avaliacoes}</span> <span class="statLbl">avaliações</span></div>
+    <div class="statSep"></div>
+    <div class="statItem"><span class="statIcon">💙</span><span class="statNum">${favoritos}</span> <span class="statLbl">favoritos</span></div>
+    <div class="statSep"></div>
+    <div class="statItem"><span class="statIcon">✅</span><span class="statNum">${filmesAssistidos}</span> <span class="statLbl">filmes assistidos</span></div>
+    <div class="statSep"></div>
+    <div class="statItem"><span class="statIcon">➕</span><span class="statNum">${queroVer}</span> <span class="statLbl">quero ver</span></div>
+    <div class="statSep"></div>
+    <div class="statItem"><span class="statIcon">🚫</span><span class="statNum">${naoQueroVer}</span> <span class="statLbl">não quero ver</span></div>
+    <div class="statSep"></div>
+    <div class="statItem"><span class="statIcon">⏱️</span><span class="statNum">${fmtHhMm(minsFilmesAssistidos)}</span> <span class="statLbl">de filmes assistidos</span></div>
+  `;
+}
 
     async function tmdbFetchSeason(tvId, seasonNumber){
   // retorna dados completos da temporada, incluindo episodes[] com still_path
