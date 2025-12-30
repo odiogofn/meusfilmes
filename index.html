@@ -349,6 +349,42 @@
   .castCard{flex-basis:140px}
   .castImg{height:168px}
 }
+  
+/* ====== FIX DEFINITIVO: elenco não estoura layout ====== */
+#viewMidia,
+.pageGrid,
+.pageCard{
+  max-width:100%;
+  overflow-x:hidden;
+}
+
+.pageCard{position:relative}
+
+.castRow{
+  max-width:100%;
+  overflow-x:auto;
+  overflow-y:hidden;
+  padding-right:44px; /* espaço pro fade */
+}
+
+/* fade lateral (estilo TMDb) */
+.pageCard.castFade::after{
+  content:"";
+  position:absolute;
+  top:0;
+  right:0;
+  width:70px;
+  height:100%;
+  pointer-events:none;
+  background:linear-gradient(to right, rgba(255,255,255,0), rgba(255,255,255,1));
+  border-radius:18px;
+}
+
+@media (prefers-color-scheme: dark){
+  .pageCard.castFade::after{
+    background:linear-gradient(to right, rgba(2,6,23,0), rgba(2,6,23,1));
+  }
+}
   </style>
 </head>
 
@@ -1069,7 +1105,7 @@
         </div>
 
         <div class="pageGrid">
-          <div class="pageCard">
+          <div class="pageCard castFade">
             <div class="sectionTitle">Sinopse</div>
             <div class="mutLine">${escapeHtml(m.sinopse || "Sem sinopse.")}</div>
 
