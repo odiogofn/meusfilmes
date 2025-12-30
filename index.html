@@ -651,7 +651,7 @@
   <script>
     // ======= SUPABASE (suas chaves) =======
     const SUPABASE_URL = "https://koytoiwfvwzjvgcqhlal.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtveXRvaXdmdnd6anZnY3FobGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxNDExNzAsImV4cCI6MjA3OTcxNzE3MH0.mrMRUGJFqzOBjj7M4giHcWr5qsqUn_0woVMFikDxrjM";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsImxlZiI6ImtveXRvaXdmdnd6anZnY3FobGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxNDExNzAsImV4cCI6MjA3OTcxNzE3MH0.mrMRUGJFqzOBjj7M4giHcWr5qsqUn_0woVMFikDxrjM";
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // ======= TMDb (suas chaves) =======
@@ -1068,8 +1068,36 @@
     }
 
     function pickEpisodeThumb(ep){
-      // tenta extrair uma imagem do campo images/videos (se existir no futuro)
-      return "https://via.placeholder.com/320x180.png?text=Epis%C3%B3dio";
+      // Preferências:
+      // 1) TMDb still_path (quando renderizado via TMDb)
+      // 2) ep.still_url (se você futuramente salvar no banco)
+      // 3) placeholder
+      try{
+        if(ep && ep.still_path){
+          const p = String(ep.still_path);
+          if(p.startsWith("http")) return p;
+          return `https://image.tmdb.org/t/p/w300${p}`;
+        }
+        if(ep && ep.still_url){
+          const u = String(ep.still_url);
+          return u.startsWith("http") ? u : ("https://" + u);
+        }
+      }catch{}
+      return "https://via.placeholder.com/320x180.png?text=Sem+Imagem";
+    }
+    function pickEpisodeStillBig(ep){
+      try{
+        if(ep && ep.still_path){
+          const p = String(ep.still_path);
+          if(p.startsWith("http")) return p;
+          return `https://image.tmdb.org/t/p/original${p}`;
+        }
+        if(ep && ep.still_url){
+          const u = String(ep.still_url);
+          return u.startsWith("http") ? u : ("https://" + u);
+        }
+      }catch{}
+      return "";
     }
 
     async function renderSeasonPage(id, temporada){
@@ -1092,22 +1120,53 @@
         seasonPage.innerHTML = `<div class="panel"><span class="small">Esta mídia não é série.</span></div>`;
         return;
       }
+// carrega episódios da temporada (Supabase) + TMDb (se tiver tmdb_id)
+let listUser = [];
+try{
+  const { data, error } = await db.from("episodios")
+    .select("*")
+    .eq("midia_id", m.id)
+    .eq("temporada", temporada)
+    .order("numero",{ascending:true});
+  if(error) throw error;
+  listUser = data || [];
+}catch(err){
+  console.error(err);
+  seasonPage.innerHTML = `<div class="panel"><span class="small">Erro ao carregar episódios do seu banco.</span></div>`;
+  return;
+}
 
-      // carrega episódios da temporada
-      let list = [];
-      try{
-        const { data, error } = await db.from("episodios")
-          .select("*")
-          .eq("midia_id", m.id)
-          .eq("temporada", temporada)
-          .order("numero",{ascending:true});
-        if(error) throw error;
-        list = data || [];
-      }catch(err){
-        console.error(err);
-        seasonPage.innerHTML = `<div class="panel"><span class="small">Erro ao carregar episódios.</span></div>`;
-        return;
-      }
+let tmdbSeason = null;
+let list = []; // lista final para render
+const tvId = intOrNull(m.tmdb_id);
+if(tvId){
+  try{
+    tmdbSeason = await tmdbFetchSeason(tvId, temporada);
+    const merged = mergeTmdbWithUserEpisodes(tmdbSeason.episodes || [], listUser);
+    // se TMDb vier vazio (raro), fallback para user
+    list = merged.length ? merged : listUser.map(u=>({
+      id: u.id, episode_number: u.numero, name: u.titulo, overview: u.resumo,
+      air_date: null, runtime: null, still_path: null,
+      titulo: u.titulo, resumo: u.resumo, status: u.status, avaliacao: u.avaliacao
+    }));
+  }catch(err){
+    console.error(err);
+    // fallback para user
+    list = listUser.map(u=>({
+      id: u.id, episode_number: u.numero, name: u.titulo, overview: u.resumo,
+      air_date: null, runtime: null, still_path: null,
+      titulo: u.titulo, resumo: u.resumo, status: u.status, avaliacao: u.avaliacao
+    }));
+    tmdbSeason = null;
+  }
+}else{
+  // sem tmdb_id: usa apenas user
+  list = listUser.map(u=>({
+    id: u.id, episode_number: u.numero, name: u.titulo, overview: u.resumo,
+    air_date: null, runtime: null, still_path: null,
+    titulo: u.titulo, resumo: u.resumo, status: u.status, avaliacao: u.avaliacao
+  }));
+}
 
       // temporadas para navegação
       let seasons = [temporada];
@@ -1132,6 +1191,7 @@
           </div>
           <div class="row">
             <button class="btn ghost" id="btnBackToShow">← Voltar à série</button>
+            ${tmdbSeason ? `<button class="btn primary" id="btnImportSeason">⬇️ Importar episódios do TMDb</button>` : ``}
             ${prev ? `<button class="btn secondary" id="btnPrev">← Temporada ${prev}</button>` : ``}
             ${next ? `<button class="btn secondary" id="btnNext">Temporada ${next} →</button>` : ``}
           </div>
@@ -1139,16 +1199,16 @@
 
         <div class="epList" id="epList">
           ${list.length ? list.map(ep=>{
-            const num = ep.numero || 0;
-            const nome = ep.titulo || `Episódio ${num}`;
-            const resumo = ep.resumo || "";
+            const num = ep.episode_number || ep.numero || 0;
+            const nome = ep.titulo || ep.name || `Episódio ${num}`;
+            const resumo = ep.resumo || ep.overview || "";
             const st = statusLabel(ep.status || "AINDA_NAO_COMECEI");
             const stCls = statusClass(ep.status || "AINDA_NAO_COMECEI");
             const nota = sanitizeRating(ep.avaliacao);
             return `
               <div class="epItem" data-ep="${escapeHtml(ep.id)}">
                 <div class="epTop">
-                  <div class="epThumb"><img src="${pickEpisodeThumb(ep)}" alt=""></div>
+                  <div class="epThumb"><img src="${pickEpisodeThumb(ep)}" alt="" data-big="${escapeHtml(pickEpisodeStillBig(ep))}"></div>
                   <div style="min-width:0">
                     <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start">
                       <div>
@@ -1191,12 +1251,76 @@
         document.getElementById("btnNext").onclick = ()=>goSeason(m.id, next);
       }
 
+// Importar do TMDb para o seu banco (apenas se tmdbSeason existe)
+const btnImport = document.getElementById("btnImportSeason");
+if(btnImport){
+  btnImport.onclick = async ()=>{
+    try{
+      btnImport.disabled = true;
+      btnImport.textContent = "Importando...";
+      const tmdbEpisodes = (tmdbSeason?.episodes || []);
+      if(!tmdbEpisodes.length){
+        msg("TMDb não retornou episódios dessa temporada.","err");
+        btnImport.disabled = false;
+        btnImport.textContent = "⬇️ Importar episódios do TMDb";
+        return;
+      }
+
+      // quais números já existem no seu banco
+      const existingNums = new Set((listUser||[]).map(u=>Number(u.numero||0)).filter(Boolean));
+
+      const toInsert = [];
+      for(const te of tmdbEpisodes){
+        const n = Number(te.episode_number||0);
+        if(!n || existingNums.has(n)) continue;
+        toInsert.push({
+          midia_id: m.id,
+          temporada: temporada,
+          numero: n,
+          titulo: te.name || null,
+          resumo: te.overview || null,
+          status: "AINDA_NAO_COMECEI",
+          avaliacao: null
+        });
+      }
+
+      if(!toInsert.length){
+        msg("Nada novo para importar (já existe tudo no seu banco).","ok");
+        btnImport.disabled = false;
+        btnImport.textContent = "⬇️ Importar episódios do TMDb";
+        return;
+      }
+
+      const { error } = await db.from("episodios").insert(toInsert);
+      if(error) throw error;
+
+      msg(`Importados ${toInsert.length} episódio(s) ✅`,"ok");
+      await renderSeasonPage(m.id, temporada);
+    }catch(err){
+      console.error(err);
+      msg("Erro ao importar (veja o console).","err");
+    }finally{
+      try{
+        btnImport.disabled = false;
+        btnImport.textContent = "⬇️ Importar episódios do TMDb";
+      }catch{}
+    }
+  };
+}
+
       // binds episode actions
       const epListEl = document.getElementById("epList");
       epListEl.addEventListener("click", async (e)=>{
         const item = e.target.closest(".epItem");
         if(!item) return;
         const epIdStr = item.getAttribute("data-ep");
+
+        // abrir imagem do episódio
+        if(e.target && e.target.tagName === "IMG" && e.target.closest(".epThumb")){
+          const big = e.target.getAttribute("data-big") || "";
+          if(big) openLightbox(big);
+          return;
+        }
         if(e.target.closest(".btnEpToggle")){
           item.classList.toggle("open");
           return;
@@ -2052,6 +2176,50 @@
       }
       return res.json();
     }
+
+async function tmdbFetchSeason(tvId, seasonNumber){
+  // retorna dados completos da temporada, incluindo episodes[] com still_path
+  return await tmdbFetch(`/tv/${tvId}/season/${seasonNumber}?api_key=${TMDB_API_KEY}&language=pt-BR`);
+}
+
+function fmtDateBR(iso){
+  const s = String(iso||"").trim();
+  if(!s) return "";
+  // iso: YYYY-MM-DD
+  const [y,m,d] = s.split("-");
+  if(!y||!m||!d) return s;
+  return `${d}/${m}/${y}`;
+}
+
+function mergeTmdbWithUserEpisodes(tmdbEpisodes, userEpisodes){
+  // userEpisodes: vindo do Supabase (tem status/avaliacao/resumo/titulo custom)
+  const map = new Map();
+  (userEpisodes||[]).forEach(u=>{
+    const k = Number(u.numero||0);
+    if(k) map.set(k, u);
+  });
+
+  return (tmdbEpisodes||[]).map(te=>{
+    const num = Number(te.episode_number||0);
+    const u = map.get(num);
+    return {
+      // TMDb
+      episode_number: te.episode_number,
+      name: te.name,
+      overview: te.overview,
+      air_date: te.air_date,
+      runtime: te.runtime,
+      still_path: te.still_path,
+
+      // Usuário (fallback)
+      id: u?.id,
+      titulo: (u?.titulo ?? null),
+      resumo: (u?.resumo ?? null),
+      status: (u?.status ?? "AINDA_NAO_COMECEI"),
+      avaliacao: (u?.avaliacao ?? null),
+    };
+  });
+}
 
     function showTmdbResults(items, type){
       tmdbResults.innerHTML = "";
