@@ -308,6 +308,17 @@
     .crumbs a{color:var(--pri);text-decoration:none;font-weight:750}
     .crumbs a:hover{text-decoration:underline}
 
+  
+/* ====== Modal: elenco organizado ====== */
+.modal .castRow{display:flex;gap:10px;overflow:auto;padding:8px 2px 12px;scrollbar-width:thin}
+.modal .castCard{flex:0 0 140px}
+.modal .castImg{height:170px}
+.modal .sectionTitle{margin-top:14px}
+.modal .modalBodyScroll{
+  max-height:calc(86vh - 120px);
+  overflow:auto;
+  padding-right:6px;
+}
   </style>
 </head>
 
@@ -651,7 +662,7 @@
   <script>
     // ======= SUPABASE (suas chaves) =======
     const SUPABASE_URL = "https://koytoiwfvwzjvgcqhlal.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtveXRvaXdmdnd6anZnY3FobGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxNDExNzAsImV4cCI6MjA3OTcxNzE3MH0.mrMRUGJFqzOBjj7M4giHcWr5qsqUn_0woVMFikDxrjM";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsImxlZiI6ImtveXRvaXdmdnd6anZnY3FobGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxNDExNzAsImV4cCI6MjA3OTcxNzE3MH0.mrMRUGJFqzOBjj7M4giHcWr5qsqUn_0woVMFikDxrjM";
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // ======= TMDb (suas chaves) =======
@@ -982,7 +993,7 @@
       }
 
       midiaPage.innerHTML = `
-        <div class="crumbs"><a href="#/">← Voltar</a></div>
+        <div class="crumbs"><a href="javascript:void(0)" id="btnCrumbBack">← Voltar</a></div>
 
         <div class="hero">
           <div class="heroBg" style="background-image:url('${escapeHtml(backdrop)}')"></div>
@@ -1038,6 +1049,10 @@
       `;
 
       // binds
+      const btnCrumbBack = document.getElementById("btnCrumbBack");
+      if(btnCrumbBack){
+        btnCrumbBack.onclick = ()=>{ try{ if(history.length>1){ history.back(); } else { goHome(); } }catch{ goHome(); } };
+      }
       document.getElementById("btnHome").onclick = goHome;
       document.getElementById("btnOpenModal").onclick = ()=>openModalView(m);
       document.getElementById("btnOpenEdit").onclick = async ()=>{
