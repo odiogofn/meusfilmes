@@ -2458,33 +2458,12 @@ function fmtHhMm(mins){
 }
 
 function countComments(m){
-  // aceita: comentarios (string|array|number), comentario (string), notes (string)
-  const v = (m.comentarios ?? m.comentario ?? m.notes ?? "");
+  // usa 'comentarios' (text) se existir; conta 1 se preenchido (modo simples)
+  const v = (m.comentarios ?? "");
   if(typeof v === "number") return v > 0 ? v : 0;
   if(Array.isArray(v)) return v.length;
   if(typeof v === "string") return v.trim() ? 1 : 0;
   return 0;
-}
-
-function isFav(m){
-  // aceita campos comuns: favorito, is_favorite, favorite
-  const v = (m.favorito ?? m.is_favorite ?? m.favorite ?? false);
-  return v === true || v === 1 || v === "1" || v === "true" || v === "SIM";
-}
-
-function isWant(m){
-  // aceita: quero_ver boolean, ou status/estado custom
-  const v = (m.quero_ver ?? m.want_to_watch ?? "");
-  if(v === true || v === 1 || v === "1" || v === "true" || v === "SIM") return true;
-  const st = String(m.status||"").toUpperCase();
-  return ["QUERO_VER","QUEROVER","WATCHLIST","TO_WATCH","WANT_TO_WATCH"].includes(st);
-}
-
-function isDont(m){
-  const v = (m.nao_quero_ver ?? m.dont_watch ?? m.dont_want ?? "");
-  if(v === true || v === 1 || v === "1" || v === "true" || v === "SIM") return true;
-  const st = String(m.status||"").toUpperCase();
-  return ["NAO_QUERO_VER","NÃO_QUERO_VER","DONT_WATCH","DO_NOT_WATCH","SKIP"].includes(st);
 }
 
 function renderStatsBar(arr){
@@ -2493,11 +2472,11 @@ function renderStatsBar(arr){
 
   const comentarios = arr.reduce((acc,m)=>acc+countComments(m),0);
   const avaliacoes = arr.filter(m => m.avaliacao !== null && m.avaliacao !== undefined && String(m.avaliacao).trim() !== "").length;
-  const favoritos = arr.filter(isFav).length;
+  const favoritos = arr.filter(m => m.favorito === true).length;
 
   const filmesAssistidos = arr.filter(m => String(m.tipo).toUpperCase()==="FILME" && String(m.status).toUpperCase()==="ASSISTIDOS").length;
-  const queroVer = arr.filter(isWant).length;
-  const naoQueroVer = arr.filter(isDont).length;
+  const queroVer = arr.filter(m => m.quero_ver === true).length;
+  const naoQueroVer = arr.filter(m => m.nao_quero_ver === true).length;
 
   const minsFilmesAssistidos = arr
     .filter(m => String(m.tipo).toUpperCase()==="FILME" && String(m.status).toUpperCase()==="ASSISTIDOS")
@@ -2520,6 +2499,7 @@ function renderStatsBar(arr){
     <div class="statItem"><span class="statIcon">⏱️</span><span class="statNum">${fmtHhMm(minsFilmesAssistidos)}</span> <span class="statLbl">de filmes assistidos</span></div>
   `;
 }
+
 
     async function tmdbFetchSeason(tvId, seasonNumber){
   // retorna dados completos da temporada, incluindo episodes[] com still_path
