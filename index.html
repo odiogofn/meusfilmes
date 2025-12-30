@@ -849,8 +849,7 @@
       const all = [];
       if(m.link) all.push(m.link);
       if(m.links){
-        String(m.links).split("
-").map(s=>s.trim()).filter(Boolean).forEach(u=>all.push(u));
+        String(m.links).split("").map(s=>s.trim()).filter(Boolean).forEach(u=>all.push(u));
       }
       const uniq = [...new Set(all)];
       if(!uniq.length) return `<div class="mutLine">Sem links cadastrados.</div>`;
