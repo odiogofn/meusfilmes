@@ -319,6 +319,36 @@
   overflow:auto;
   padding-right:6px;
 }
+  
+/* ====== Cast: não quebrar layout (1 linha com scroll) ====== */
+.castRow{
+  display:flex;
+  flex-wrap:nowrap;
+  gap:10px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  padding:8px 2px 12px;
+  scrollbar-width:thin;
+  scroll-snap-type:x mandatory;
+  -webkit-overflow-scrolling:touch;
+}
+.castCard{
+  flex:0 0 120px;
+  scroll-snap-align:start;
+}
+.castImg{height:150px}
+.castTxt{padding:8px 10px; min-height:62px}
+.castName, .castRole{
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.castName{-webkit-line-clamp:2}
+.castRole{-webkit-line-clamp:2}
+@media(max-width:820px){
+  .castCard{flex-basis:140px}
+  .castImg{height:168px}
+}
   </style>
 </head>
 
@@ -662,7 +692,7 @@
   <script>
     // ======= SUPABASE (suas chaves) =======
     const SUPABASE_URL = "https://koytoiwfvwzjvgcqhlal.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtveXRvaXdmdnd6anZnY3FobGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxNDExNzAsImV4cCI6MjA3OTcxNzE3MH0.mrMRUGJFqzOBjj7M4giHcWr5qsqUn_0woVMFikDxrjM";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsImxlZiI6ImtveXRvaXdmdnd6anZnY3FobGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxNDExNzAsImV4cCI6MjA3OTcxNzE3MH0.mrMRUGJFqzOBjj7M4giHcWr5qsqUn_0woVMFikDxrjM";
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // ======= TMDb (suas chaves) =======
