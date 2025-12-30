@@ -1,7 +1,6 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <link rel="icon" href="data:,">
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Minha Coleção</title>
@@ -652,7 +651,7 @@
   <script>
     // ======= SUPABASE (suas chaves) =======
     const SUPABASE_URL = "https://koytoiwfvwzjvgcqhlal.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtveXRvaXdmdnd6anZnY3FobGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxNDExNzAsImV4cCI6MjA3OTcxNzE3MH0.mrMRUGJFqzOBjj7M4giHcWr5qsqUn_0woVMFikDxrjM";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsImxlZiI6ImtveXRvaXdmdnd6anZnY3FobGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxNDExNzAsImV4cCI6MjA3OTcxNzE3MH0.mrMRUGJFqzOBjj7M4giHcWr5qsqUn_0woVMFikDxrjM";
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // ======= TMDb (suas chaves) =======
@@ -784,9 +783,9 @@
       window.scrollTo({ top: 0, behavior: "auto" });
     }
 
-    function goHome(){ location.hash = "#/"; }
-    function goMidia(id){ location.hash = `#/m/${id}`; }
-    function goSeason(id, temporada){ location.hash = `#/m/${id}/t/${temporada}`; }
+    function goHome(){ location.hash = "#/"; route().catch(()=>{}); }
+    function goMidia(id){ location.hash = `#/m/${id}`; route().catch(()=>{}); }
+    function goSeason(id, temporada){ location.hash = `#/m/${id}/t/${temporada}`; route().catch(()=>{}); }
 
     function parseHash(){
       const h = (location.hash || "#/").replace(/^#/, "");
@@ -849,7 +848,7 @@
       const all = [];
       if(m.link) all.push(m.link);
       if(m.links){
-        String(m.links).split("").map(s=>s.trim()).filter(Boolean).forEach(u=>all.push(u));
+        String(m.links).split("\n").map(s=>s.trim()).filter(Boolean).forEach(u=>all.push(u));
       }
       const uniq = [...new Set(all)];
       if(!uniq.length) return `<div class="mutLine">Sem links cadastrados.</div>`;
@@ -1244,7 +1243,8 @@
     }
 
     async function route(){
-      const r = parseHash();
+      try{
+        const r = parseHash();
       if(r.route === "home"){
         setView("home");
         return;
@@ -1258,6 +1258,11 @@
         return;
       }
       setView("home");
+      }catch(err){
+        console.error(err);
+        try{ msg("Erro ao navegar (veja o console).","err"); }catch{}
+        setView("home");
+      }
     }
 
     // ========= Filters =========
