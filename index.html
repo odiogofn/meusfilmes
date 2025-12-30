@@ -385,7 +385,44 @@
     background:linear-gradient(to right, rgba(2,6,23,0), rgba(2,6,23,1));
   }
 }
-  </style>
+  
+/* ====== Upgrades: progresso + trailer + busca avançada ====== */
+.advBox{
+  background:#fff;border:1px solid var(--bd);border-radius:18px;
+  box-shadow:0 12px 28px rgba(15,23,42,.06);
+  padding:10px 10px 6px;margin-top:10px
+}
+.advGrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+@media(max-width:1100px){.advGrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:720px){.advGrid{grid-template-columns:1fr}}
+.advGrid label{display:block;font-size:.78rem;color:var(--mut);font-weight:800;margin:0 0 6px}
+.advGrid input,.advGrid select{
+  width:100%;padding:10px 10px;border:1px solid var(--bd);border-radius:12px;
+  font:inherit;background:#fff;outline:none
+}
+.advActions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;padding:8px 2px 2px}
+.progressWrap{display:grid;gap:10px}
+.progressBar{
+  height:12px;border-radius:999px;background:#e5e7eb;overflow:hidden;border:1px solid var(--bd)
+}
+.progressBar > div{
+  height:100%;border-radius:999px;background:var(--pri);width:0%;
+}
+.progressMeta{display:flex;gap:10px;flex-wrap:wrap;align-items:center;color:var(--mut);font-size:.9rem}
+.seasonProg{display:grid;gap:8px;margin-top:10px}
+.seasonProgItem{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.seasonProgItem b{font-size:.92rem}
+.seasonProgItem .small{color:var(--mut)}
+.trailerBox{
+  position:relative;border-radius:18px;overflow:hidden;border:1px solid var(--bd);
+  box-shadow:0 12px 28px rgba(15,23,42,.06);background:#0b1220
+}
+.trailerBox iframe{width:100%;height:min(420px, 56vw);display:block;border:0}
+.trailerEmpty{
+  padding:14px;color:#fff;background:linear-gradient(90deg, rgba(2,6,23,.96), rgba(2,6,23,.75));
+  font-weight:750
+}
+</style>
 </head>
 
 <body>
@@ -1122,10 +1159,16 @@ function pickNotStartedStatus(existingStatuses){
             <div class="sectionTitle">Elenco</div>
             ${castHtml}
 
+            ${m.tipo==="SERIE" ? `<div class="sectionTitle">Progresso</div><div id="progressSlot" class="progressWrap"><div class="mutLine">Carregando progresso...</div></div>` : ""}
+
             ${m.tipo==="SERIE" ? seasonsBox : ""}
           </div>
 
           <div class="pageCard">
+            <div class="sectionTitle">Trailer</div>
+            <div id="trailerSlot" class="trailerBox"><div class="trailerEmpty">Sem trailer disponível.</div></div>
+
+            <div class="divider"></div>
             <div class="sectionTitle">Links</div>
             ${linksHtml}
 
@@ -1153,6 +1196,47 @@ function pickNotStartedStatus(existingStatuses){
         await openModalView(m);
         btnEditar.click();
       };
+
+
+// Trailer (TMDb)
+try{
+  const slot = document.getElementById("trailerSlot");
+  const tmdbId = intOrNull(m.tmdb_id);
+  if(slot && tmdbId){
+    const kind = (m.tipo === "SERIE") ? "tv" : "movie";
+    const videos = await tmdbFetchVideos(kind, tmdbId);
+    const best = pickBestYoutubeTrailer(videos);
+    if(best){
+      // youtube embed
+      const url = `https://www.youtube.com/embed/${best.key}?rel=0&modestbranding=1`;
+      slot.innerHTML = `<iframe src="${url}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen title="Trailer"></iframe>`;
+    }else{
+      slot.innerHTML = `<div class="trailerEmpty">Sem trailer disponível no TMDb.</div>`;
+    }
+  }
+}catch(err){ console.error(err); }
+
+// Progresso (Séries)
+try{
+  if(m.tipo === "SERIE"){
+    const ps = document.getElementById("progressSlot");
+    if(ps){
+      const prog = await fetchSeriesProgress(m.id);
+      const p = pct(prog.watched, prog.total);
+      const bar = `<div class="progressBar"><div style="width:${p}%"></div></div>`;
+      const meta = `<div class="progressMeta"><span class="pill">Assistidos: <b>${prog.watched}</b> / ${prog.total || 0}</span><span class="pill">${p}%</span>${prog.total?``:`<span class="small">Importe episódios do TMDb para calcular.</span>`}</div>`;
+      const seasons = prog.seasons.length ? `
+        <div class="seasonProg">
+          ${prog.seasons.map(s=>{
+            const sp = pct(s.watched, s.total);
+            return `<div class="seasonProgItem"><div><b>Temporada ${s.temporada}</b> <span class="small">• ${s.watched}/${s.total}</span></div><span class="pill">${sp}%</span></div>`;
+          }).join("")}
+        </div>
+      ` : ``;
+      ps.innerHTML = bar + meta + seasons;
+    }
+  }
+}catch(err){ console.error(err); }
 
       // cast lightbox
       const castRow = document.getElementById("castRow");
@@ -1503,12 +1587,39 @@ if(btnImport){
     const fTipo = document.getElementById("fTipo");
     const fNome = document.getElementById("fNome");
     const fNota = document.getElementById("fNota");
+    const btnAdvToggle = document.getElementById("btnAdvToggle");
+    const advBox = document.getElementById("advBox");
+    const btnAdvClear = document.getElementById("btnAdvClear");
+    const btnAdvHide = document.getElementById("btnAdvHide");
+    const fAtor = document.getElementById("fAtor");
+    const fStreaming2 = document.getElementById("fStreaming");
+    const fAnoDe = document.getElementById("fAnoDe");
+    const fAnoAte = document.getElementById("fAnoAte");
+    const fNotaMin = document.getElementById("fNotaMin");
+    const fComTmdb = document.getElementById("fComTmdb");
     const countInfo = document.getElementById("countInfo");
     const lista = document.getElementById("lista");
 
     // filtros reagem em tempo real
     [fStatus,fTipo].forEach(el=>el.addEventListener("change", renderList));
     [fNome,fNota].forEach(el=>el.addEventListener("input", ()=>{ renderList(); }));
+    // busca avançada
+    if(btnAdvToggle && advBox){
+      btnAdvToggle.onclick = ()=>{ advBox.style.display = (advBox.style.display==="none" || !advBox.style.display) ? "block" : "none"; };
+    }
+    if(btnAdvHide && advBox){ btnAdvHide.onclick = ()=> advBox.style.display = "none"; }
+    if(btnAdvClear){
+      btnAdvClear.onclick = ()=>{
+        if(fAtor) fAtor.value = "";
+        if(fStreaming2) fStreaming2.value = "";
+        if(fAnoDe) fAnoDe.value = "";
+        if(fAnoAte) fAnoAte.value = "";
+        if(fNotaMin) fNotaMin.value = "";
+        if(fComTmdb) fComTmdb.value = "";
+        renderList();
+      };
+    }
+    [fAtor,fStreaming2,fAnoDe,fAnoAte,fNotaMin,fComTmdb].forEach(el=>{ if(el) el.addEventListener("input", renderList); if(el) el.addEventListener("change", renderList); });
 
 
     // TOPS refs
@@ -2286,7 +2397,45 @@ if(btnImport){
       return res.json();
     }
 
-async function tmdbFetchSeason(tvId, seasonNumber){
+async function tmdbFetchVideos(kind, tmdbId){
+  // kind: "movie" | "tv"
+  return await tmdbFetch(`/${kind}/${tmdbId}/videos?api_key=${TMDB_API_KEY}&language=pt-BR`);
+}
+
+function pickBestYoutubeTrailer(videos){
+  const arr = (videos && videos.results) ? videos.results : [];
+  // prefer Trailer, YouTube, official
+  const yt = arr.filter(v=>String(v.site||"").toLowerCase()==="youtube");
+  const trailers = yt.filter(v=>String(v.type||"").toLowerCase()==="trailer");
+  const official = trailers.find(v=>v.official) || trailers[0] || yt[0] || null;
+  if(!official) return null;
+  if(!official.key) return null;
+  return official;
+}
+
+async function fetchSeriesProgress(midiaId){
+  const { data, error } = await db.from("episodios").select("temporada,status").eq("midia_id", midiaId);
+  if(error) throw error;
+  const rows = data || [];
+  const total = rows.length;
+  const watched = rows.filter(r=>r.status==="ASSISTIDOS").length;
+
+  const bySeason = new Map();
+  for(const r of rows){
+    const t = Number(r.temporada||0);
+    if(!t) continue;
+    if(!bySeason.has(t)) bySeason.set(t, { total:0, watched:0 });
+    const obj = bySeason.get(t);
+    obj.total += 1;
+    if(r.status==="ASSISTIDOS") obj.watched += 1;
+  }
+  const seasons = [...bySeason.entries()].sort((a,b)=>a[0]-b[0]).map(([t,v])=>({ temporada:t, ...v }));
+  return { total, watched, seasons };
+}
+
+function pct(a,b){ if(!b) return 0; return Math.max(0, Math.min(100, Math.round((a/b)*100))); }
+
+    async function tmdbFetchSeason(tvId, seasonNumber){
   // retorna dados completos da temporada, incluindo episodes[] com still_path
   return await tmdbFetch(`/tv/${tvId}/season/${seasonNumber}?api_key=${TMDB_API_KEY}&language=pt-BR`);
 }
