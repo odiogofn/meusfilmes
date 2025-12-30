@@ -411,7 +411,7 @@
             <option value="">Todos status</option>
             <option value="ASSISTINDO">Assistindo</option>
             <option value="ASSISTIDOS">Assistidos</option>
-            <option value="AINDA_NAO_COMECEI">Ainda não comecei</option>
+            <option value="NAO_COMECEI">Ainda não comecei</option>
           </select>
 
           <select id="fTipo" style="min-width:150px">
@@ -542,7 +542,7 @@
                 <select id="mStatus">
                   <option value="ASSISTINDO">Assistindo</option>
                   <option value="ASSISTIDOS">Assistidos</option>
-                  <option value="AINDA_NAO_COMECEI">Ainda não comecei</option>
+                  <option value="NAO_COMECEI">Ainda não comecei</option>
                 </select>
               </div>
 
@@ -670,7 +670,7 @@
 
               <div><label>Status</label>
                 <select id="epStatus">
-                  <option value="AINDA_NAO_COMECEI">Ainda não comecei</option>
+                  <option value="NAO_COMECEI">Ainda não comecei</option>
                   <option value="ASSISTINDO">Assistindo</option>
                   <option value="ASSISTIDOS">Assistidos</option>
                 </select>
@@ -799,12 +799,12 @@
     }
 
 function pickNotStartedStatus(existingStatuses){
-  // Seu banco pode usar "AINDA_NAO_COMECEI" OU "AINDA NÃO COMECEI".
+  // Seu banco pode usar "NAO_COMECEI" OU "NAO_COMECEI".
   const set = new Set((existingStatuses||[]).map(x=>String(x||"").trim()).filter(Boolean));
-  if(set.has("AINDA NÃO COMECEI")) return "AINDA NÃO COMECEI";
-  if(set.has("AINDA NAO COMECEI")) return "AINDA NAO COMECEI";
+  if(set.has("NAO_COMECEI")) return "NAO_COMECEI";
+  if(set.has("NAO_COMECEI")) return "NAO_COMECEI";
   // fallback (padrão do app)
-  return "AINDA_NAO_COMECEI";
+  return "NAO_COMECEI";
 }
 
     function escapeHtml(str){
@@ -1311,8 +1311,8 @@ if(tvId){
             const num = ep.episode_number || ep.numero || 0;
             const nome = ep.titulo || ep.name || `Episódio ${num}`;
             const resumo = ep.resumo || ep.overview || "";
-            const st = statusLabel(ep.status || "AINDA_NAO_COMECEI");
-            const stCls = statusClass(ep.status || "AINDA_NAO_COMECEI");
+            const st = statusLabel(ep.status || "NAO_COMECEI");
+            const stCls = statusClass(ep.status || "NAO_COMECEI");
             const nota = sanitizeRating(ep.avaliacao);
             return `
               <div class="epItem" data-ep="${escapeHtml(ep.id)}">
@@ -1388,7 +1388,7 @@ if(btnImport){
           numero: n,
           titulo: te.name || null,
           resumo: te.overview || null,
-          status: "AINDA_NAO_COMECEI",
+          status: "NAO_COMECEI",
           avaliacao: null
         });
       }
@@ -2094,7 +2094,7 @@ if(btnImport){
       epNum.value = "";
       epTitulo.value = "";
       epResumo.value = "";
-      epStatus.value = "AINDA_NAO_COMECEI";
+      epStatus.value = "NAO_COMECEI";
       epAvaliacao.value = "";
       document.getElementById("starsEp").textContent = "☆☆☆☆☆";
     }
@@ -2156,7 +2156,7 @@ if(btnImport){
       epNum.value = ep.numero;
       epTitulo.value = ep.titulo || "";
       epResumo.value = ep.resumo || "";
-      epStatus.value = ep.status || "AINDA_NAO_COMECEI";
+      epStatus.value = ep.status || "NAO_COMECEI";
       epAvaliacao.value = (sanitizeRating(ep.avaliacao) ?? "").toString().replace(".", ",");
       document.getElementById("starsEp").textContent = starsString(ep.avaliacao);
     }
@@ -2166,7 +2166,7 @@ if(btnImport){
       for(const ep of eps){
         const t = ep.temporada || 0;
         if(!map.has(t)) map.set(t, new Map());
-        const st = ep.status || "AINDA_NAO_COMECEI";
+        const st = ep.status || "NAO_COMECEI";
         const m2 = map.get(t);
         if(!m2.has(st)) m2.set(st, []);
         m2.get(st).push(ep);
@@ -2198,7 +2198,7 @@ if(btnImport){
         const wrap = document.createElement("div");
         wrap.className = "epWrap";
 
-        const order = ["ASSISTINDO","ASSISTIDOS","AINDA_NAO_COMECEI"];
+        const order = ["ASSISTINDO","ASSISTIDOS","NAO_COMECEI"];
         for(const st of order){
           const list = map.get(temporada).get(st) || [];
           if(!list.length) continue;
@@ -2324,7 +2324,7 @@ function mergeTmdbWithUserEpisodes(tmdbEpisodes, userEpisodes){
       id: u?.id,
       titulo: (u?.titulo ?? null),
       resumo: (u?.resumo ?? null),
-      status: (u?.status ?? "AINDA_NAO_COMECEI"),
+      status: (u?.status ?? "NAO_COMECEI"),
       avaliacao: (u?.avaliacao ?? null),
     };
   });
