@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
+  <link rel="icon" href="data:,">
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Minha Coleção</title>
@@ -780,7 +781,7 @@
       viewSeason.style.display = (name==="season") ? "block" : "none";
       // fecha modal se trocar de página
       if(name !== "home" && modalBackdrop.classList.contains("show")) closeBackdrop();
-      window.scrollTo({ top: 0, behavior: "instant" });
+      window.scrollTo({ top: 0, behavior: "auto" });
     }
 
     function goHome(){ location.hash = "#/"; }
