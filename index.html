@@ -1,309 +1,438 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<title>Minha Coleção</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="data:,">
-
-<style>
-body{
-  margin:0;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto;
-  background:#fff;
-  color:#111;
-}
-.wrap{max-width:1100px;margin:auto;padding:16px}
-h1{margin:0;font-weight:600}
-.sub{color:#666;font-size:.9rem;margin-bottom:12px}
-
-.btn{
-  padding:8px 14px;
-  border-radius:999px;
-  border:1px solid #ddd;
-  background:#f8f8f8;
-  cursor:pointer;
-  font-weight:600;
-}
-.btn.primary{background:#4f46e5;color:#fff;border:none}
-
-.grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:12px;
-}
-@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:600px){.grid{grid-template-columns:1fr}}
-
-.card{
-  display:flex;
-  gap:10px;
-  border:1px solid #eee;
-  border-radius:14px;
-  padding:10px;
-  cursor:pointer;
-}
-.poster{
-  width:80px;
-  height:120px;
-  background:#eee;
-  border-radius:10px;
-  overflow:hidden;
-}
-.poster img{width:100%;height:100%;object-fit:cover}
-
-.title{
-  font-weight:600;
-  line-height:1.2;
-  display:-webkit-box;
-  -webkit-line-clamp:2;
-  -webkit-box-orient:vertical;
-  overflow:hidden;
-}
-
-.meta{color:#666;font-size:.8rem;margin-top:4px}
-.footer{
-  margin-top:6px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-.status{
-  font-size:.7rem;
-  padding:3px 8px;
-  border-radius:999px;
-}
-.ASSISTIDOS{background:#dcfce7;color:#15803d}
-.ASSISTINDO{background:#eef2ff;color:#4338ca}
-.AINDA_NAO_COMECEI{background:#fef3c7;color:#92400e}
-
-/* TOPS */
-.tops{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:12px;
-  margin-bottom:16px;
-}
-@media(max-width:900px){.tops{grid-template-columns:1fr}}
-
-.topBox{
-  border:1px solid #eee;
-  border-radius:14px;
-}
-.topHead{
-  padding:8px 10px;
-  background:#fafafa;
-  border-bottom:1px solid #eee;
-  font-weight:600;
-}
-.topItem{
-  padding:8px 10px;
-  border-bottom:1px solid #f1f1f1;
-  cursor:pointer;
-  font-size:.85rem;
-}
-.topItem:last-child{border-bottom:0}
-
-/* MODAL */
-.backdrop{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.5);
-  display:none;
-  align-items:center;
-  justify-content:center;
-}
-.backdrop.show{display:flex}
-
-.modal{
-  background:#fff;
-  width:90%;
-  max-width:700px;
-  max-height:90vh;
-  border-radius:16px;
-  display:flex;
-  flex-direction:column;
-}
-.modalHeader,
-.modalFooter{
-  padding:10px;
-  border-bottom:1px solid #eee;
-}
-.modalFooter{border-top:1px solid #eee;border-bottom:none}
-.modalBody{
-  padding:10px;
-  overflow:auto;
-}
-
-label{font-size:.75rem;color:#666}
-input,textarea,select{
-  width:100%;
-  padding:8px;
-  border-radius:10px;
-  border:1px solid #ddd;
-}
-.stars{font-size:1.3rem;cursor:pointer}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Minha Coleção</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css?v=12">
 </head>
 
 <body>
-<div class="wrap">
-  <h1>🎬 Minha Coleção</h1>
-  <div class="sub">Versão estável local</div>
-
-  <div class="tops">
-    <div class="topBox">
-      <div class="topHead">⭐ Top 10</div>
-      <div id="topBest"></div>
-    </div>
-    <div class="topBox">
-      <div class="topHead">⬇️ Piores</div>
-      <div id="topWorst"></div>
-    </div>
-    <div class="topBox">
-      <div class="topHead">🆕 Últimos</div>
-      <div id="topLast"></div>
-    </div>
-  </div>
-
-  <button class="btn primary" id="btnNovo">+ Nova mídia</button>
-  <div style="height:10px"></div>
-
-  <div id="lista" class="grid"></div>
-</div>
-
-<div class="backdrop" id="backdrop">
-  <div class="modal">
-    <div class="modalHeader">
-      <b id="modalTitle">Detalhes</b>
-      <button class="btn" id="btnFechar">Fechar</button>
-    </div>
-    <div class="modalBody">
-      <label>Nome</label>
-      <input id="mNome">
-
-      <label>Status</label>
-      <select id="mStatus">
-        <option value="ASSISTINDO">Assistindo</option>
-        <option value="ASSISTIDOS">Assistidos</option>
-        <option value="AINDA_NAO_COMECEI">Ainda não comecei</option>
-      </select>
-
-      <label>Avaliação</label>
-      <div class="stars" id="stars">☆☆☆☆☆</div>
-      <input id="mAvaliacao" placeholder="0,5 – 5">
-
-      <label>Sinopse</label>
-      <textarea id="mSinopse"></textarea>
-    </div>
-    <div class="modalFooter">
-      <button class="btn primary" id="btnSalvar">Salvar</button>
-    </div>
-  </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.6/dist/umd/supabase.min.js"></script>
-<script>
-console.log("VERSAO LOCAL OK");
-
-const SUPABASE_URL = "https://koytoiwfvwzjvgcqhlal.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtveXRvaXdmdnd6anZnY3FobGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxNDExNzAsImV4cCI6MjA3OTcxNzE3MH0.mrMRUGJFqzOBjj7M4giHcWr5qsqUn_0woVMFikDxrjM";
-
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-function sanitize(v){
-  if(!v) return null;
-  v=String(v).replace(",",".");
-  let n=Number(v);
-  if(!isFinite(n)) return null;
-  return Math.round(Math.max(0,Math.min(5,n))*2)/2;
-}
-function stars(v){
-  const n=sanitize(v);
-  if(n==null) return "☆☆☆☆☆";
-  return "★".repeat(Math.floor(n))+(n%1?"⯨":"")+"☆".repeat(5-Math.ceil(n));
-}
-
-let midias=[];
-let current=null;
-
-async function load(){
-  const {data,error}=await db.from("midias").select("*").order("created_at",{ascending:false});
-  if(error){console.error(error);alert("erro ao carregar midias");return;}
-  midias=data||[];
-  render();
-}
-load();
-
-function render(){
-  const best=[...midias].filter(m=>m.avaliacao!=null).sort((a,b)=>b.avaliacao-a.avaliacao).slice(0,10);
-  const worst=[...midias].filter(m=>m.avaliacao!=null).sort((a,b)=>a.avaliacao-b.avaliacao).slice(0,10);
-  const last=midias.slice(0,10);
-
-  fill("topBest",best);
-  fill("topWorst",worst);
-  fill("topLast",last);
-
-  const lista=document.getElementById("lista");
-  lista.innerHTML="";
-  midias.forEach(m=>{
-    const c=document.createElement("div");
-    c.className="card";
-    c.onclick=()=>open(m);
-    c.innerHTML=`
-      <div class="poster"><img src="${m.imagem_url||""}"></div>
+  <div class="wrap">
+    <header class="header">
       <div>
-        <div class="title">${m.nome}</div>
-        <div class="meta">${m.ano||""}</div>
-        <div class="footer">
-          <span class="status ${m.status}">${m.status}</span>
-          <span>${stars(m.avaliacao)}</span>
+        <h1>🎬 Minha Coleção</h1>
+        <div class="sub">Abas • TMDb • Franquias • TOPs • Episódios com resumo</div>
+      </div>
+
+      <div class="header-actions">
+        <button class="btn ghost" id="btnReload">Recarregar</button>
+        <button class="btn secondary" id="btnManage">Gerir Coleção</button>
+        <button class="btn primary" id="btnNew">+ Nova Mídia</button>
+      </div>
+    </header>
+
+    <!-- NAV: ABAS -->
+    <section class="panel">
+      <div class="tabs">
+        <button class="tab active" data-tab="ASSISTINDO" id="tabAssistindo">Assistindo</button>
+        <button class="tab" data-tab="ASSISTIDOS">Assistidos</button>
+        <button class="tab" data-tab="AINDA_NAO_COMECEI">Ainda não comecei</button>
+      </div>
+
+      <div class="filters">
+        <input id="fSearch" placeholder="Buscar por nome..." />
+        <input id="fMinRating" placeholder="Nota mínima (ex: 0,5 / 3,5)" inputmode="decimal" />
+
+        <select id="fTipo">
+          <option value="">Filmes + Séries</option>
+          <option value="FILME">Só Filmes</option>
+          <option value="SERIE">Só Séries</option>
+        </select>
+
+        <select id="fStreaming">
+          <option value="">Streaming (todos)</option>
+        </select>
+
+        <select id="fAno">
+          <option value="">Ano (todos)</option>
+        </select>
+
+        <select id="fGenero">
+          <option value="">Gênero (todos)</option>
+        </select>
+
+        <select id="fDiretor">
+          <option value="">Diretor (todos)</option>
+        </select>
+
+        <select id="fFranquia">
+          <option value="">Franquia (todas)</option>
+        </select>
+
+        <button class="btn ghost" id="btnClearFilters">Limpar filtros</button>
+
+        <div class="count" id="countInfo"></div>
+      </div>
+    </section>
+
+    <!-- DESTAQUES (somente página principal) -->
+    <section class="panel" id="highlights">
+      <div class="highlights-grid">
+        <div class="box">
+          <div class="box-head">⭐ Top 10 melhores</div>
+          <div class="box-list" id="topBest"></div>
         </div>
-      </div>`;
-    lista.appendChild(c);
-  });
-}
-function fill(id,list){
-  const el=document.getElementById(id);
-  el.innerHTML="";
-  list.forEach(m=>{
-    const d=document.createElement("div");
-    d.className="topItem";
-    d.textContent=`${m.nome} (${m.avaliacao})`;
-    d.onclick=()=>open(m);
-    el.appendChild(d);
-  });
-}
 
-const backdrop=document.getElementById("backdrop");
-function open(m){
-  current=m;
-  document.getElementById("modalTitle").textContent=m?"Editar":"Nova";
-  document.getElementById("mNome").value=m?.nome||"";
-  document.getElementById("mStatus").value=m?.status||"ASSISTINDO";
-  document.getElementById("mAvaliacao").value=m?.avaliacao||"";
-  document.getElementById("mSinopse").value=m?.sinopse||"";
-  document.getElementById("stars").textContent=stars(m?.avaliacao);
-  backdrop.classList.add("show");
-}
-document.getElementById("btnNovo").onclick=()=>open();
-document.getElementById("btnFechar").onclick=()=>backdrop.classList.remove("show");
+        <div class="box">
+          <div class="box-head">⬇️ Top 10 piores</div>
+          <div class="box-list" id="topWorst"></div>
+        </div>
 
-document.getElementById("btnSalvar").onclick=async()=>{
-  const payload={
-    nome:document.getElementById("mNome").value,
-    status:document.getElementById("mStatus").value,
-    avaliacao:sanitize(document.getElementById("mAvaliacao").value),
-    sinopse:document.getElementById("mSinopse").value
-  };
-  if(current){
-    await db.from("midias").update(payload).eq("id",current.id);
-  }else{
-    await db.from("midias").insert(payload);
-  }
-  backdrop.classList.remove("show");
-  load();
-};
-</script>
+        <div class="box">
+          <div class="box-head">🆕 Últimos 10 adicionados</div>
+          <div class="box-list" id="topLast"></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="franchise-wrap">
+        <div class="franchise-title">🎞️ Coleções de Franquia (clique no pôster para filtrar)</div>
+
+        <div class="franchise-two">
+          <div>
+            <div class="franchise-sub">Filmes</div>
+            <div class="franchise-grid" id="franchisesMovies"></div>
+          </div>
+
+          <div>
+            <div class="franchise-sub">Séries</div>
+            <div class="franchise-grid" id="franchisesSeries"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LISTA PRINCIPAL -->
+    <section class="grid" id="grid"></section>
+
+    <!-- TELA GERIR COLEÇÃO -->
+    <section class="panel manage hidden" id="managePanel">
+      <div class="manage-head">
+        <div>
+          <div class="manage-title">Gerir Coleção</div>
+          <div class="sub">Aqui você cadastra/edita mídias e importa/exporta JSON (mídias). Episódios ficam no modal da série.</div>
+        </div>
+        <div class="manage-actions">
+          <button class="btn ghost" id="btnBack">Voltar</button>
+          <button class="btn secondary" id="btnExportMidias">Exportar mídias (JSON)</button>
+          <button class="btn ghost" id="btnModelMidias">Baixar modelo (mídias)</button>
+          <label class="btn ghost filebtn">
+            Importar mídias
+            <input type="file" id="fileImportMidias" accept="application/json" hidden>
+          </label>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- TMDb -->
+      <div class="tmdb">
+        <div class="tmdb-head">
+          <div>
+            <div class="tmdb-title">Buscar no TMDb</div>
+            <div class="sub">Digite e clique Buscar. Selecione um resultado para preencher automático.</div>
+          </div>
+
+          <select id="tmdbType">
+            <option value="movie">Filme</option>
+            <option value="tv">Série</option>
+          </select>
+        </div>
+
+        <div class="tmdb-row">
+          <input id="tmdbQuery" placeholder="Ex: Matrix, Lost..." />
+          <button class="btn secondary" id="btnTmdbSearch">Buscar</button>
+          <button class="btn ghost" id="btnTmdbClear">Limpar</button>
+        </div>
+
+        <div class="tmdb-results hidden" id="tmdbResults"></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="manage-form">
+        <div class="posterBig">
+          <img id="mPosterPreview" alt="poster"/>
+        </div>
+
+        <form id="formManage" class="form">
+          <input type="hidden" id="mId"/>
+
+          <div class="col2">
+            <div class="field full">
+              <label>Nome</label>
+              <input id="mNome" required />
+            </div>
+
+            <div class="field">
+              <label>Tipo</label>
+              <select id="mTipo">
+                <option value="FILME">Filme</option>
+                <option value="SERIE">Série</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Status</label>
+              <select id="mStatus">
+                <option value="ASSISTINDO">Assistindo</option>
+                <option value="ASSISTIDOS">Assistidos</option>
+                <option value="AINDA_NAO_COMECEI">Ainda não comecei</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Data de lançamento</label>
+              <input id="mReleaseDate" type="date" />
+              <div class="hint">O ano será preenchido automaticamente.</div>
+            </div>
+
+            <div class="field">
+              <label>Ano</label>
+              <input id="mAno" type="number" min="1900" max="2100" />
+            </div>
+
+            <div class="field">
+              <label>Streaming</label>
+              <input id="mStreaming" placeholder="Netflix, Prime..." />
+            </div>
+
+            <div class="field">
+              <label>Gênero</label>
+              <input id="mGenero" placeholder="Ação, Drama..." />
+            </div>
+
+            <div class="field">
+              <label>Diretor(es)</label>
+              <input id="mDiretor" placeholder="Nome(s) do diretor" />
+            </div>
+
+            <div class="field">
+              <label>Franquia</label>
+              <input id="mFranquia" placeholder="Ex: Matrix" />
+            </div>
+
+            <div class="field full">
+              <label>URL do pôster</label>
+              <input id="mImagemUrl" placeholder="https://...jpg" />
+            </div>
+
+            <div class="field full">
+              <label>Link principal</label>
+              <input id="mLink" placeholder="https://..." />
+            </div>
+
+            <div class="field full">
+              <label>Links (1 por linha)</label>
+              <textarea id="mLinks" rows="3" placeholder="https://...\nhttps://..."></textarea>
+            </div>
+
+            <div class="field full">
+              <label>Avaliação (0 a 5, meia estrela)</label>
+              <div class="ratingRow">
+                <div class="starsBox" id="starsMidia" title="Clique para definir (meia estrela)">☆☆☆☆☆</div>
+                <input id="mAvaliacao" placeholder="Ex: 0,5 / 3,5" inputmode="decimal" />
+              </div>
+            </div>
+
+            <div class="field full">
+              <label>Sinopse</label>
+              <textarea id="mSinopse" rows="4"></textarea>
+            </div>
+
+            <details class="advanced">
+              <summary>Campos avançados (TMDb/JSON)</summary>
+              <div class="advGrid">
+                <div class="field">
+                  <label>tmdb_id</label>
+                  <input id="mTmdbId" class="mono" />
+                </div>
+                <div class="field">
+                  <label>imdb_id</label>
+                  <input id="mImdbId" class="mono" />
+                </div>
+
+                <div class="field full">
+                  <label>cast_data (JSON)</label>
+                  <textarea id="mCastData" rows="4" class="mono"></textarea>
+                </div>
+
+                <div class="field full">
+                  <label>networks (JSON)</label>
+                  <textarea id="mNetworks" rows="3" class="mono"></textarea>
+                </div>
+
+                <div class="field full">
+                  <label>keywords (JSON)</label>
+                  <textarea id="mKeywords" rows="3" class="mono"></textarea>
+                </div>
+              </div>
+            </details>
+
+            <div class="formActions">
+              <button class="btn primary" type="submit" id="btnSaveManage">Salvar</button>
+              <button class="btn danger" type="button" id="btnDeleteManage">Excluir</button>
+              <button class="btn ghost" type="button" id="btnResetManage">Limpar formulário</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="manage-list">
+        <div class="manage-title">Itens cadastrados</div>
+        <div class="grid" id="manageGrid"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- MODAL DETALHES -->
+  <div class="backdrop hidden" id="modalBackdrop">
+    <div class="modal">
+      <div class="modalHead">
+        <div class="modalTitles">
+          <div class="modalTitle" id="dTitle">Detalhes</div>
+          <div class="modalSub" id="dSub"></div>
+        </div>
+        <div class="modalHeadActions">
+          <button class="btn ghost" id="btnCloseModal">Fechar</button>
+        </div>
+      </div>
+
+      <div class="modalBody" id="modalBody">
+        <div class="modalMain">
+          <div class="modalPoster">
+            <img id="dPoster" alt="poster">
+          </div>
+
+          <div class="modalInfo">
+            <div class="badges">
+              <span class="pill" id="dTipo"></span>
+              <span class="pill" id="dStatus"></span>
+              <span class="pill" id="dAno"></span>
+              <span class="pill" id="dStreaming"></span>
+              <span class="pill" id="dGenero"></span>
+              <span class="pill" id="dDiretor"></span>
+              <span class="pill" id="dFranquia"></span>
+            </div>
+
+            <div class="modalStars">
+              <span class="note" id="dNote"></span>
+              <span class="starsSmall" id="dStars"></span>
+            </div>
+
+            <div class="section">
+              <div class="sectionTitle">Sinopse</div>
+              <div class="text" id="dSinopse"></div>
+            </div>
+
+            <div class="section">
+              <div class="sectionTitle">Links</div>
+              <div class="links" id="dLinks"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- EPISÓDIOS (somente séries) -->
+        <div class="eps hidden" id="epsBox">
+          <div class="divider"></div>
+
+          <div class="epsHead">
+            <div>
+              <div class="sectionTitle">Guia de Episódios</div>
+              <div class="sub">Agrupado por temporada e por status.</div>
+            </div>
+
+            <div class="epsActions">
+              <button class="btn secondary" id="btnAddEp">+ Episódio</button>
+
+              <button class="btn ghost" id="btnExportEps">Exportar episódios</button>
+              <button class="btn ghost" id="btnModelEps">Modelo importação</button>
+
+              <label class="btn ghost filebtn">
+                Importar episódios
+                <input type="file" id="fileImportEps" accept="application/json" hidden>
+              </label>
+            </div>
+          </div>
+
+          <div class="epsForm hidden" id="epForm">
+            <div class="epsFormTop">
+              <b id="epFormTitle">Novo episódio</b>
+              <button class="btn ghost" id="btnCancelEp">Fechar</button>
+            </div>
+
+            <div class="divider"></div>
+
+            <form id="formEp" class="form">
+              <input type="hidden" id="epId">
+
+              <div class="epGrid">
+                <div class="field">
+                  <label>Temporada</label>
+                  <input id="epSeason" type="number" min="1" required>
+                </div>
+
+                <div class="field">
+                  <label>Nº episódio</label>
+                  <input id="epNumber" type="number" min="1" required>
+                </div>
+
+                <div class="field full">
+                  <label>Título</label>
+                  <input id="epTitle" placeholder="Opcional">
+                </div>
+
+                <div class="field full">
+                  <label>Resumo</label>
+                  <textarea id="epResumo" rows="3"></textarea>
+                </div>
+
+                <div class="field">
+                  <label>Status</label>
+                  <select id="epStatus">
+                    <option value="AINDA_NAO_COMECEI">Ainda não comecei</option>
+                    <option value="ASSISTINDO">Assistindo</option>
+                    <option value="ASSISTIDOS">Assistidos</option>
+                  </select>
+                </div>
+
+                <div class="field full">
+                  <label>Avaliação (0 a 5, meia estrela)</label>
+                  <div class="ratingRow">
+                    <div class="starsBox" id="starsEp">☆☆☆☆☆</div>
+                    <input id="epRating" placeholder="Ex: 0,5 / 4,5" inputmode="decimal">
+                  </div>
+                </div>
+
+                <div class="formActions">
+                  <button class="btn primary" type="submit">Salvar episódio</button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <div id="epsGrouped"></div>
+        </div>
+      </div>
+
+      <div class="modalFoot">
+        <button class="btn danger" id="btnDelete">Excluir</button>
+        <div class="right">
+          <button class="btn ghost" id="btnEdit">Editar</button>
+          <button class="btn primary hidden" id="btnSave">Salvar alterações</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast hidden" id="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.6/dist/umd/supabase.min.js"></script>
+  <script src="app.js?v=12"></script>
 </body>
 </html>
