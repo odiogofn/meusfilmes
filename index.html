@@ -904,37 +904,55 @@
     }
 
     function renderCastBlock(m){
-      let cast = [];
-      try{
-        if(Array.isArray(m.cast_data)) cast = m.cast_data;
-        else if(typeof m.cast_data === "string"){
-          const parsed = tryParseJSON(m.cast_data);
-          if(parsed && parsed !== "__INVALID__" && Array.isArray(parsed)) cast = parsed;
-        }
-      }catch{}
-      if(!cast.length) return `<div class="mutLine">Sem elenco cadastrado (use TMDb para preencher).</div>`;
-
-      const TMDB_PROFILE = "https://image.tmdb.org/t/p/w185";
-      const TMDB_PROFILE_BIG = "https://image.tmdb.org/t/p/original";
-      const cards = cast.slice(0, 18).map(c=>{
-        const name = c.name || "-";
-        const role = c.character || "";
-        const path = c.profile_path ? (c.profile_path.startsWith("http") ? c.profile_path : (TMDB_PROFILE + c.profile_path)) : "";
-        const big = c.profile_path ? (c.profile_path.startsWith("http") ? c.profile_path : (TMDB_PROFILE_BIG + c.profile_path)) : "";
-        const img = path || "https://via.placeholder.com/185x278.png?text=Sem+Foto";
-        return `
-          <div class="castCard" data-big="${escapeHtml(big)}" title="Clique para ampliar">
-            <div class="castImg"><img src="${img}" alt=""></div>
-            <div class="castTxt">
-              <div class="castName">${escapeHtml(name)}</div>
-              <div class="castRole">${escapeHtml(role||"")}</div>
-            </div>
-          </div>
-        `;
-      }).join("");
-
-      return `<div class="castRow" id="castRow">${cards}</div>`;
+  let cast = [];
+  try{
+    if(Array.isArray(m.cast_data)) cast = m.cast_data;
+    else if(typeof m.cast_data === "string"){
+      const parsed = tryParseJSON(m.cast_data);
+      if(parsed && parsed !== "__INVALID__" && Array.isArray(parsed)) cast = parsed;
     }
+  }catch{}
+
+  const TMDB_PROFILE = "https://image.tmdb.org/t/p/w185";
+  const TMDB_PROFILE_BIG = "https://image.tmdb.org/t/p/original";
+
+  // Sempre renderiza um "row" organizado, mesmo vazio
+  if(!cast.length){
+    const placeholder = `
+      <div class="castRow" id="castRow">
+        <div class="castCard" style="cursor:default">
+          <div class="castImg" style="display:flex;align-items:center;justify-content:center;font-weight:800;color:#6b7280">
+            Sem foto
+          </div>
+          <div class="castTxt">
+            <div class="castName">Elenco não cadastrado</div>
+            <div class="castRole">Use o TMDb (ou edite) para preencher.</div>
+          </div>
+        </div>
+      </div>
+    `;
+    return placeholder;
+  }
+
+  const cards = cast.slice(0, 18).map(c=>{
+    const name = c.name || "-";
+    const role = c.character || "";
+    const path = c.profile_path ? (c.profile_path.startsWith("http") ? c.profile_path : (TMDB_PROFILE + c.profile_path)) : "";
+    const big = c.profile_path ? (c.profile_path.startsWith("http") ? c.profile_path : (TMDB_PROFILE_BIG + c.profile_path)) : "";
+    const img = path || "https://via.placeholder.com/185x278.png?text=Sem+Foto";
+    return `
+      <div class="castCard" data-big="${escapeHtml(big)}" title="Clique para ampliar">
+        <div class="castImg"><img src="${img}" alt=""></div>
+        <div class="castTxt">
+          <div class="castName">${escapeHtml(name)}</div>
+          <div class="castRole">${escapeHtml(role||"")}</div>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  return `<div class="castRow" id="castRow">${cards}</div>`;
+}
 
     async function getSeasonsInfo(m){
       // 1) se já tiver number_of_seasons, usa
