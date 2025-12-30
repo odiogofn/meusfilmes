@@ -3,447 +3,186 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sistema de Filmes e Séries — Elenco (cast_data) integrado</title>
+  <title>Minha Coleção</title>
+
   <style>
     :root{
-      --bg:#0f1115;
-      --card:#151922;
-      --card2:#10131a;
-      --text:#e8ecf3;
-      --muted:#aab3c2;
-      --border:#232a39;
-      --accent:#6aa6ff;
-      --shadow: 0 12px 30px rgba(0,0,0,.35);
-      --radius:14px;
-      --danger:#ff7878;
-      --ok:#78ffb4;
+      --bg:#ffffff;
+      --panel:#f6f7fb;
+      --card:#ffffff;
+      --bd:#e5e7eb;
+      --txt:#0f172a;
+      --mut:#64748b;
+      --pri:#4f46e5;
+      --pri2:#eef2ff;
+      --danger:#b91c1c;
+      --shadow: 0 10px 30px rgba(15,23,42,.10);
+      --r:16px;
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
     }
-    *{ box-sizing:border-box; }
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: radial-gradient(900px 500px at 20% -10%, rgba(106,166,255,.16), transparent 60%),
-                  radial-gradient(900px 500px at 85% 0%, rgba(120,255,180,.08), transparent 55%),
-                  var(--bg);
-      color:var(--text);
+
+    *{box-sizing:border-box}
+    body{margin:0;font-family:var(--font);background:var(--bg);color:var(--txt)}
+    .wrap{max-width:1180px;margin:0 auto;padding:18px 14px 44px}
+    header{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start;margin-bottom:12px}
+    h1{margin:0;font-size:1.55rem;font-weight:650}
+    .sub{margin:6px 0 0;color:var(--mut);font-size:.92rem}
+
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .panel{background:var(--panel);border-radius:var(--r);box-shadow:var(--shadow);padding:14px;margin:12px 0}
+    .btn{border:0;border-radius:999px;padding:8px 14px;cursor:pointer;transition:.15s;white-space:nowrap;font-weight:600}
+    .btn.primary{background:var(--pri);color:#fff;box-shadow:0 6px 18px rgba(79,70,229,.20)}
+    .btn.primary:hover{background:#4338ca;transform:translateY(-1px)}
+    .btn.secondary{background:var(--pri2);color:var(--pri);font-weight:600}
+    .btn.ghost{background:transparent;border:1px solid var(--bd);color:var(--mut);font-weight:600}
+    .btn.danger{background:#fee2e2;color:#991b1b;border:1px solid #fecaca}
+    .btn.small{padding:6px 10px;font-size:.82rem}
+
+    input,select,textarea{
+      width:100%;padding:9px 10px;border-radius:12px;border:1px solid var(--bd);
+      background:#fff;font-size:.93rem;outline:none
     }
-    .wrap{
-      max-width:1200px;
-      margin:26px auto;
-      padding:0 16px 56px;
-    }
-    header{
-      display:flex;
-      gap:16px;
-      align-items:flex-start;
-      justify-content:space-between;
-      margin-bottom:16px;
-    }
-    h1{
-      margin:0;
-      font-size:20px;
-      letter-spacing:.2px;
-      font-weight:800;
-    }
-    .sub{
-      margin:6px 0 0;
-      color:var(--muted);
-      font-size:13px;
-      line-height:1.4;
-    }
-    .row{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:14px;
-    }
-    @media (min-width: 980px){
-      .row{ grid-template-columns: 1.1fr .9fr; }
-    }
+    textarea{resize:vertical}
+    label{font-size:.78rem;color:var(--mut);font-weight:700}
+    .small{font-size:.83rem;color:var(--mut)}
+    .divider{height:1px;background:var(--bd);margin:10px 0}
+
+    .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    @media(max-width:980px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:720px){.grid{grid-template-columns:1fr}}
+
+    /* Cards */
     .card{
-      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow:hidden;
+      background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);
+      padding:10px;display:flex;gap:10px;cursor:pointer;min-height:132px
     }
-    .card .head{
-      padding:14px 16px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      border-bottom:1px solid rgba(255,255,255,.06);
-      background: rgba(0,0,0,.18);
-      gap:12px;
-      flex-wrap:wrap;
-    }
-    .badge{
-      display:inline-flex;
-      gap:8px;
-      align-items:center;
-      font-size:12px;
-      color: var(--muted);
-    }
-    .badge b{ color:var(--text); font-weight:800; }
-    .content{ padding:16px; }
+    .card:hover{outline:2px solid rgba(79,70,229,.12)}
+    .poster{width:84px;flex:0 0 84px;border-radius:14px;overflow:hidden;background:#e5e7eb}
+    .poster img{width:100%;height:118px;object-fit:cover;display:block}
+    .content{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
 
-    .field{
-      display:grid;
-      gap:7px;
-      margin-bottom:10px;
+    .titleLine{display:flex;gap:8px;align-items:flex-start}
+    .title{
+      font-weight:650;font-size:.98rem;min-width:0;flex:1;line-height:1.15;
+      display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+      word-break:break-word;
     }
-    label{
-      font-size:12px;
-      color:var(--muted);
-      font-weight:800;
-    }
-    input, textarea, select{
-      width:100%;
-      padding:10px 12px;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.04);
-      color:var(--text);
-      outline:none;
-      font-size:13px;
-    }
-    textarea{ min-height: 92px; resize: vertical; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
-    input::placeholder, textarea::placeholder{ color: rgba(170,179,194,.7); }
+    .badge{font-size:.7rem;padding:2px 8px;border-radius:999px;background:#eef2ff;color:#3730a3;flex:0 0 auto;font-weight:600}
 
-    .actions{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-    }
-    button{
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.06);
-      color:var(--text);
-      padding:10px 12px;
-      border-radius:12px;
-      cursor:pointer;
-      font-weight:800;
-      font-size:13px;
-      transition: transform .12s ease, background .12s ease, border-color .12s ease;
-    }
-    button:hover{
-      transform: translateY(-1px);
-      border-color: rgba(106,166,255,.35);
-      background: rgba(106,166,255,.10);
-    }
-    .btn-primary{
-      border-color: rgba(106,166,255,.40);
-      background: rgba(106,166,255,.14);
-    }
-    .btn-danger{
-      border-color: rgba(255,120,120,.35);
-      background: rgba(255,120,120,.10);
-    }
-    .pill{
-      margin-left:auto;
-      display:flex;
-      align-items:center;
-      gap:8px;
-      font-size:12px;
-      color:var(--muted);
-    }
-    .dot{
-      width:10px;height:10px;border-radius:50%;
-      background: rgba(170,179,194,.35);
-    }
-    .dot.ok{ background: rgba(120,255,180,.65); }
-    .dot.err{ background: rgba(255,120,120,.65); }
+    .meta{color:var(--mut);font-size:.82rem;display:flex;flex-wrap:wrap;gap:6px;min-height:18px}
+    .footer{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+    .status{font-size:.74rem;border-radius:999px;padding:3px 9px;font-weight:650}
+    .st-assistindo{background:#eef2ff;color:#4f46e5}
+    .st-assistidos{background:#dcfce7;color:#15803d}
+    .st-nao{background:#fef3c7;color:#92400e}
 
-    /* Lista de mídias */
-    .list{
-      display:grid;
-      gap:10px;
-    }
-    .item{
-      border:1px solid rgba(255,255,255,.08);
-      background: rgba(255,255,255,.03);
-      border-radius: 14px;
-      padding:12px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      cursor:pointer;
-      transition: transform .12s ease, border-color .12s ease, background .12s ease;
-    }
-    .item:hover{
-      transform: translateY(-1px);
-      border-color: rgba(106,166,255,.35);
-      background: rgba(106,166,255,.06);
-    }
-    .item .title{
-      font-weight:900;
-      font-size:14px;
-      line-height:1.2;
-      margin:0;
-    }
-    .item .meta{
-      margin:6px 0 0;
-      color:var(--muted);
-      font-size:12px;
-      line-height:1.2;
-    }
-    .tag{
-      font-size:12px;
-      padding:6px 10px;
-      border-radius: 999px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.18);
-      color: var(--muted);
-      white-space: nowrap;
-    }
+    .starsInline{font-size:.86rem;color:#0f172a;white-space:nowrap;display:flex;gap:8px;align-items:center}
+    .starsInline .mut{color:var(--mut);font-weight:600}
 
-    /* Modal base */
+    /* TOPS — menos escuro/menos negrito */
+    .topsGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    @media(max-width:980px){.topsGrid{grid-template-columns:1fr}}
+    .topBox{background:#fff;border:1px solid var(--bd);border-radius:16px;box-shadow:0 10px 22px rgba(15,23,42,.06);overflow:hidden}
+    .topHead{padding:10px 12px;background:#fafafa;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center;gap:10px}
+    .topHead b{font-size:.95rem;font-weight:600;color:#111827} /* <<< mais leve */
+    .topList{max-height:220px;overflow:auto;padding:6px 0}
+    .topItem{display:flex;gap:10px;align-items:center;padding:8px 12px;border-bottom:1px solid #f1f5f9;cursor:pointer}
+    .topItem:hover{background:#f8fafc}
+    .topItem:last-child{border-bottom:0}
+    .topItem .name{
+      flex:1;min-width:0;font-weight:550;font-size:.86rem; /* <<< mais leve */
+      display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+      word-break:break-word;color:#111827;
+    }
+    .topItem .note{font-weight:550;color:var(--mut);font-size:.85rem;white-space:nowrap}
+    .topItem .stars{white-space:nowrap;font-size:.85rem;color:#111827}
+
+    /* ===== MODAL COM SCROLL ===== */
+    .backdrop{
+      position:fixed;inset:0;background:rgba(2,6,23,.55);
+      display:none;align-items:center;justify-content:center;padding:16px;z-index:50
+    }
+    .backdrop.show{display:flex}
     .modal{
-      display:none;
-      position:fixed;
-      inset:0;
-      background: rgba(0,0,0,.78);
-      backdrop-filter: blur(6px);
-      align-items:center;
-      justify-content:center;
-      padding:18px;
-      z-index:9999;
+      width:min(1100px, 100%);
+      max-height:calc(100vh - 24px);
+      background:#fff;border-radius:20px;box-shadow:0 24px 70px rgba(0,0,0,.35);
+      overflow:hidden;display:flex;flex-direction:column;
     }
-    .modal.show{ display:flex; }
-    .modal-card{
-      width:min(980px, 100%);
-      max-height: min(90vh, 900px);
-      background: rgba(18,22,30,.92);
-      border:1px solid rgba(255,255,255,.10);
-      border-radius: 18px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.55);
-      overflow:hidden;
-      display:flex;
-      flex-direction:column;
+    .modalHeader{
+      flex:0 0 auto;
+      display:flex;justify-content:space-between;gap:10px;align-items:flex-start;
+      padding:14px 14px 10px;background:linear-gradient(180deg, #ffffff, #fafafa);
+      border-bottom:1px solid var(--bd)
     }
-    .modal-head{
-      padding:14px 14px;
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:12px;
-      background: rgba(0,0,0,.18);
-      border-bottom:1px solid rgba(255,255,255,.08);
-    }
-    .modal-title{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-      min-width: 0;
-    }
-    .modal-title h2{
-      margin:0;
-      font-size:16px;
-      font-weight:900;
-      letter-spacing:.2px;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
-      max-width: 720px;
-    }
-    .modal-title p{
-      margin:0;
-      font-size:13px;
-      color: var(--muted);
-      line-height:1.35;
-    }
-    .close{
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.06);
-      width:40px;height:40px;
-      border-radius: 12px;
-      cursor:pointer;
-      display:grid;
-      place-items:center;
-      font-size:20px;
-      line-height:0;
-      user-select:none;
-      flex: 0 0 auto;
-    }
-    .close:hover{
-      border-color: rgba(106,166,255,.35);
-      background: rgba(106,166,255,.10);
-    }
-    .modal-body{
-      padding:14px;
-      overflow:auto; /* ✅ rolagem no modal */
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:14px;
-    }
-    @media (min-width: 980px){
-      .modal-body{ grid-template-columns: 1fr 1fr; }
-    }
-    .box{
-      border:1px solid rgba(255,255,255,.08);
-      background: rgba(255,255,255,.03);
-      border-radius: 14px;
-      padding:12px;
-    }
-    .box-head{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom:10px;
-    }
-    .box-head h3{
-      margin:0;
-      font-size:13px;
-      font-weight:900;
-      letter-spacing:.2px;
-    }
-    .muted{ color: var(--muted); font-size:12px; }
-
-    /* ===== Elenco (grid) ===== */
-    .cast-grid{
-      display:grid;
-      grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
-      gap:12px;
-    }
-    .cast-card{
-      cursor:pointer;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.04);
-      padding:10px;
-      transition: transform .12s ease, background .12s ease, border-color .12s ease;
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      min-height:160px;
-    }
-    .cast-card:hover{
-      transform: translateY(-1px);
-      border-color: rgba(106,166,255,.35);
-      background: rgba(106,166,255,.08);
-    }
-    .cast-photo{
-      width:100%;
-      aspect-ratio: 3/4;
-      border-radius:10px;
-      overflow:hidden;
-      background: rgba(0,0,0,.25);
-      border:1px solid rgba(255,255,255,.08);
-    }
-    .cast-photo img{
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      display:block;
-    }
-    .cast-name{
-      font-size:13px;
-      font-weight:800;
-      line-height:1.15;
-      margin:0;
-    }
-    .cast-role{
-      font-size:12px;
-      opacity:.8;
-      line-height:1.15;
-      margin:0;
+    .modalTitle{margin:0;font-size:1.1rem;font-weight:650}
+    .modalSub{margin-top:4px}
+    .modalBody{flex:1 1 auto;overflow:auto;padding:14px;} /* <<< SCROLL */
+    .modalFooter{
+      flex:0 0 auto;
+      padding:12px 14px;border-top:1px solid var(--bd);
+      display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;background:#fff;
     }
 
-    /* ===== Modal zoom (cast) ===== */
-    .cast-zoom-modal{
-      display:none;
-      position:fixed;
-      inset:0;
-      background: rgba(0,0,0,.78);
-      backdrop-filter: blur(6px);
-      z-index: 99999;
-      align-items:center;
-      justify-content:center;
-      padding:16px;
-    }
-    .cast-zoom-modal.show{ display:flex; }
+    .layout2{display:grid;grid-template-columns: 180px 1fr;gap:12px}
+    @media(max-width:820px){.layout2{grid-template-columns:1fr}}
+    .bigPoster{width:180px;height:260px;border-radius:16px;overflow:hidden;background:#e5e7eb}
+    @media(max-width:820px){.bigPoster{width:100%;height:240px}}
+    .bigPoster img{width:100%;height:100%;object-fit:cover;display:block}
 
-    .cast-zoom-card{
-      width:min(900px, 100%);
-      max-height: 88vh;
-      border-radius:16px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(18,22,30,.94);
-      overflow:hidden;
-      position:relative;
-      display:flex;
-      flex-direction:column;
-    }
-    .cast-zoom-close{
-      position:absolute;
-      top:10px; right:10px;
-      width:40px; height:40px;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.06);
-      color:#fff;
-      font-size:22px;
-      cursor:pointer;
-      font-weight:900;
-    }
-    .cast-zoom-body{
-      padding:14px;
-      overflow:auto; /* ✅ rolagem se a imagem for gigante */
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background: rgba(0,0,0,.22);
-    }
-    .cast-zoom-body img{
-      max-width:100%;
-      max-height:70vh;
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,.10);
-      object-fit:contain;
-      background: rgba(0,0,0,.15);
-    }
-    .cast-zoom-info{
-      padding:12px 14px;
-      border-top:1px solid rgba(255,255,255,.10);
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-    }
-    .cast-zoom-name{ font-weight:900; }
-    .cast-zoom-role{ opacity:.85; font-size:13px; }
-    .cast-zoom-link{
-      font-weight:900;
-      text-decoration:none;
-      color:var(--accent);
-      font-size:13px;
-    }
-    .cast-zoom-link:hover{ text-decoration:underline; }
+    .formGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px}
+    .full{grid-column:1/-1}
 
-    .split{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:10px;
+    /* Rating */
+    .ratingRow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .starsBox{
+      user-select:none;cursor:pointer;font-size:1.35rem;letter-spacing:1px;
+      padding:4px 10px;border-radius:14px;border:1px dashed var(--bd);background:#fff
     }
-    @media (min-width: 980px){
-      .split{ grid-template-columns: 1fr 1fr; }
+    .starsBox.readonly{cursor:default;opacity:.95}
+    .pill{background:var(--panel);border:1px solid var(--bd);border-radius:999px;padding:6px 10px;font-size:.82rem;color:var(--mut);font-weight:650}
+
+    details.adv{border:1px solid var(--bd);border-radius:14px;background:#fff;box-shadow:0 10px 22px rgba(15,23,42,.06);margin-top:12px}
+    details.adv summary{cursor:pointer;padding:10px 12px;list-style:none;font-weight:650}
+    details.adv summary::-webkit-details-marker{display:none}
+    details.adv .advBody{padding:10px 12px;border-top:1px solid var(--bd)}
+
+    /* Episodes */
+    details.ep{border:1px solid var(--bd);border-radius:14px;background:#fff;box-shadow:0 10px 22px rgba(15,23,42,.06)}
+    details.ep + details.ep{margin-top:10px}
+    details.ep summary{cursor:pointer;padding:10px 12px;list-style:none;font-weight:650}
+    details.ep summary::-webkit-details-marker{display:none}
+    .epWrap{padding:10px 12px;border-top:1px solid var(--bd)}
+    .epGroupTitle{font-weight:650;margin:0 0 8px}
+    .epTable{width:100%;border-collapse:collapse;font-size:.86rem}
+    .epTable th,.epTable td{padding:8px;border-bottom:1px solid var(--bd);text-align:left;vertical-align:top}
+    .epTable th{background:#f3f4f6;font-weight:650}
+    .epActions{display:flex;gap:6px;flex-wrap:wrap}
+
+    /* TMDb Search */
+    .tmdbBox{background:#fff;border:1px solid var(--bd);border-radius:16px;padding:10px 12px;box-shadow:0 10px 22px rgba(15,23,42,.06)}
+    .tmdbList{margin-top:8px;max-height:220px;overflow:auto;border:1px solid var(--bd);border-radius:14px}
+    .tmdbItem{display:flex;gap:10px;padding:8px 10px;border-bottom:1px solid #f1f5f9;cursor:pointer;align-items:center}
+    .tmdbItem:hover{background:#f8fafc}
+    .tmdbItem:last-child{border-bottom:0}
+    .tmdbThumb{width:40px;height:56px;border-radius:10px;overflow:hidden;background:#e5e7eb;flex:0 0 auto}
+    .tmdbThumb img{width:100%;height:100%;object-fit:cover}
+    .tmdbName{font-weight:650;font-size:.88rem;min-width:0;flex:1}
+    .tmdbMeta{color:var(--mut);font-size:.78rem}
+
+    .toast{
+      position:fixed;right:16px;bottom:16px;background:#111827;color:#fff;
+      padding:10px 14px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.25);
+      opacity:0;transform:translateY(12px);transition:.2s;pointer-events:none;z-index:60
     }
-    .hint{
-      font-size:12px;
-      color:var(--muted);
-      line-height:1.4;
-      margin-top:8px;
-    }
-    code.k{
-      padding:2px 6px;
-      border-radius:8px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.18);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-      font-size: 12px;
-      color: var(--text);
-    }
+    .toast.show{opacity:1;transform:translateY(0)}
+    .toast.err{background:#b91c1c}
+    .toast.ok{background:#065f46}
+
+    a.link{color:var(--pri);text-decoration:none;font-weight:650}
+    a.link:hover{text-decoration:underline}
+    .linksList{display:flex;flex-direction:column;gap:6px}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
   </style>
 </head>
 
@@ -451,543 +190,1334 @@
   <div class="wrap">
     <header>
       <div>
-        <h1>Sistema de Filmes e Séries — Elenco clicável (cast_data) ✅</h1>
-        <p class="sub">
-          Aqui já está <b>integrado de verdade</b>: carrega do Supabase, lista as mídias e, ao abrir uma mídia, renderiza o elenco em miniaturas clicáveis
-          com zoom (modal com rolagem).
-        </p>
+        <h1>🎬 Minha Coleção</h1>
+        <p class="sub">TOPs só aqui na página principal. Clique no card para detalhes. Editar abre o mesmo modal.</p>
+      </div>
+      <div class="row">
+        <button class="btn secondary" id="btnRecarregar">Recarregar</button>
+        <button class="btn primary" id="btnNovo">+ Nova mídia</button>
       </div>
     </header>
 
-    <div class="row">
-      <!-- CONFIG SUPABASE -->
-      <div class="card">
-        <div class="head">
-          <div class="badge"><b>1) Configuração</b> • Supabase</div>
-          <div class="pill"><span class="dot" id="connDot"></span><span id="connTxt">Desconectado</span></div>
+    <!-- FILTROS -->
+    <section class="panel">
+      <div class="row" style="justify-content:space-between">
+        <div class="row">
+          <select id="fStatus" style="min-width:180px">
+            <option value="">Todos status</option>
+            <option value="ASSISTINDO">Assistindo</option>
+            <option value="ASSISTIDOS">Assistidos</option>
+            <option value="AINDA_NAO_COMECEI">Ainda não comecei</option>
+          </select>
+
+          <select id="fTipo" style="min-width:150px">
+            <option value="">Filmes + Séries</option>
+            <option value="FILME">Só Filmes</option>
+            <option value="SERIE">Só Séries</option>
+          </select>
+
+          <input id="fNome" placeholder="Buscar por nome..." style="min-width:240px" />
+          <input id="fNota" placeholder="Nota mínima (ex: 0,5 ou 3.5)" style="max-width:220px" />
         </div>
-        <div class="content">
-          <div class="split">
-            <div class="field">
-              <label>SUPABASE URL</label>
-              <input id="sbUrl" placeholder="https://xxxx.supabase.co" />
-            </div>
-            <div class="field">
-              <label>SUPABASE ANON KEY</label>
-              <input id="sbKey" placeholder="eyJhbGciOi..." />
-            </div>
-          </div>
 
-          <div class="split">
-            <div class="field">
-              <label>Tabela</label>
-              <input id="sbTable" value="midias" />
-            </div>
-            <div class="field">
-              <label>Order</label>
-              <input id="sbOrder" value="created_at.desc" />
-            </div>
-          </div>
+        <div class="small" id="countInfo"></div>
+      </div>
+    </section>
 
-          <div class="actions">
-            <button class="btn-primary" id="btnConnect">Conectar e carregar mídias</button>
-            <button id="btnSaveConfig">Salvar config (local)</button>
-            <button class="btn-danger" id="btnClearConfig">Limpar config</button>
-          </div>
+    <!-- TOPS -->
+    <section class="panel" id="topsPanel">
+      <div class="topsGrid">
+        <div class="topBox">
+          <div class="topHead"><b>⭐ Top 10 mais bem avaliados</b><span class="small" id="topBestCount"></span></div>
+          <div class="topList" id="topBest"></div>
+        </div>
+        <div class="topBox">
+          <div class="topHead"><b>⬇️ Top 10 menos avaliados</b><span class="small" id="topWorstCount"></span></div>
+          <div class="topList" id="topWorst"></div>
+        </div>
+        <div class="topBox">
+          <div class="topHead"><b>🆕 Últimos 10 adicionados</b><span class="small" id="topLastCount"></span></div>
+          <div class="topList" id="topLast"></div>
+        </div>
+      </div>
+      <div class="small" style="margin-top:8px">Clique em um item do TOP para abrir o modal daquela mídia.</div>
+    </section>
 
-          <div class="hint">
-            • A tabela precisa ter pelo menos: <code class="k">id</code>, <code class="k">titulo</code> (ou <code class="k">nome</code>), e <code class="k">cast_data</code> (jsonb ou texto JSON).<br>
-            • Se seu campo se chama diferente, ajuste em <code class="k">FIELD_MAP</code> no JS.
-          </div>
+    <!-- LISTA PRINCIPAL -->
+    <section id="lista" class="grid"></section>
+  </div>
+
+  <!-- MODAL DETALHES/EDITAR -->
+  <div class="backdrop" id="modalBackdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modalHeader">
+        <div style="min-width:0">
+          <h2 class="modalTitle" id="modalTitle">Detalhes</h2>
+          <div class="small modalSub" id="modalSub"></div>
+        </div>
+        <div class="row">
+          <button class="btn ghost small" id="btnFechar">Fechar</button>
         </div>
       </div>
 
-      <!-- LISTA DE MÍDIAS -->
-      <div class="card">
-        <div class="head">
-          <div class="badge"><b>2) Mídias</b> • clique para abrir</div>
-          <div class="badge"><span id="midiasCount">0</span> itens</div>
+      <div class="modalBody">
+
+        <!-- TMDB -->
+        <div id="tmdbSection" class="tmdbBox" style="display:none;margin-bottom:12px">
+          <div class="row" style="justify-content:space-between;align-items:flex-end">
+            <div>
+              <div style="font-weight:650">Buscar no TMDb</div>
+              <div class="small">Digite e clique Buscar. Selecione um resultado para preencher automático.</div>
+            </div>
+            <div class="row">
+              <select id="tmdbType" style="min-width:140px">
+                <option value="movie">Filme</option>
+                <option value="tv">Série</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:8px">
+            <input id="tmdbQuery" placeholder="Ex: Matrix, Lost, Interstellar..." />
+            <button class="btn secondary" id="btnTmdbSearch" type="button">Buscar</button>
+            <button class="btn ghost" id="btnTmdbClear" type="button">Limpar</button>
+          </div>
+
+          <div id="tmdbResults" class="tmdbList" style="display:none"></div>
         </div>
-        <div class="content">
-          <div class="field">
-            <label>Buscar</label>
-            <input id="search" placeholder="Digite para filtrar pelo título..." />
+
+        <div class="layout2">
+          <div>
+            <div class="bigPoster">
+              <img id="mPoster" alt="poster" />
+            </div>
+            <div style="margin-top:10px" class="row">
+              <span class="pill" id="mBadgeTipo">-</span>
+              <span class="pill" id="mBadgeStatus">-</span>
+            </div>
+            <div style="margin-top:10px" class="small" id="mStarsText"></div>
           </div>
-          <div id="midiasList" class="list"></div>
-          <div id="midiasEmpty" class="muted" style="display:none; margin-top:10px;">
-            Nenhuma mídia carregada.
+
+          <div style="min-width:0">
+            <form id="formMidia" class="formGrid">
+              <input type="hidden" id="mId" />
+
+              <div class="full">
+                <label>Nome</label>
+                <input id="mNome" required />
+              </div>
+
+              <div>
+                <label>Tipo</label>
+                <select id="mTipo" required>
+                  <option value="FILME">Filme</option>
+                  <option value="SERIE">Série</option>
+                </select>
+              </div>
+
+              <div>
+                <label>Status (seu)</label>
+                <select id="mStatus">
+                  <option value="ASSISTINDO">Assistindo</option>
+                  <option value="ASSISTIDOS">Assistidos</option>
+                  <option value="AINDA_NAO_COMECEI">Ainda não comecei</option>
+                </select>
+              </div>
+
+              <div>
+                <label>Streaming (manual)</label>
+                <input id="mStreaming" placeholder="Netflix, Prime..." />
+              </div>
+
+              <div>
+                <label>Ano (manual)</label>
+                <input id="mAno" type="number" min="1900" max="2100" />
+              </div>
+
+              <div class="full">
+                <label>URL do pôster</label>
+                <input id="mImagemUrl" placeholder="https://...jpg" />
+              </div>
+
+              <div class="full">
+                <label>LINK (um principal)</label>
+                <input id="mLink" placeholder="https://..." />
+              </div>
+
+              <div class="full">
+                <label>LINKS (vários) — 1 por linha</label>
+                <textarea id="mLinks" rows="3" placeholder="https://...\nhttps://..."></textarea>
+              </div>
+
+              <div class="full">
+                <label>Avaliação (0 a 5, meia estrela)</label>
+                <div class="ratingRow">
+                  <div class="starsBox" id="starsMidia" title="Clique para definir (meia estrela também)">☆☆☆☆☆</div>
+                  <input id="mAvaliacao" placeholder="Ex: 0,5 ou 4.5" inputmode="decimal" style="max-width:220px" />
+                  <span class="small">Aceita vírgula ou ponto</span>
+                </div>
+              </div>
+
+              <div class="full">
+                <label>Sinopse</label>
+                <textarea id="mSinopse" rows="3" placeholder="Opcional"></textarea>
+              </div>
+
+              <!-- Links clicáveis (só view) -->
+              <div class="full" id="linksViewBox" style="display:none">
+                <label>Links cadastrados</label>
+                <div class="linksList" id="linksView"></div>
+              </div>
+            </form>
+
+            <!-- CAMPOS AVANÇADOS -->
+            <details class="adv" id="advBox">
+              <summary>Campos avançados (TMDb/IMDb)</summary>
+              <div class="advBody">
+                <div class="formGrid">
+                  <div><label>tmdb_id</label><input id="mTmdbId" class="mono" /></div>
+                  <div><label>imdb_id</label><input id="mImdbId" class="mono" /></div>
+
+                  <div class="full"><label>título original</label><input id="mTituloOriginal" /></div>
+
+                  <div><label>idioma_original</label><input id="mIdiomaOriginal" class="mono" /></div>
+                  <div><label>tagline</label><input id="mTagline" /></div>
+                  <div><label>status_oficial</label><input id="mStatusOficial" /></div>
+
+                  <div><label>vote_average</label><input id="mVoteAverage" inputmode="decimal" placeholder="Ex: 7.85" /></div>
+                  <div><label>vote_count</label><input id="mVoteCount" type="number" min="0" /></div>
+                  <div><label>popularity</label><input id="mPopularity" inputmode="decimal" placeholder="Ex: 123.456" /></div>
+
+                  <div><label>data_lancamento</label><input id="mDataLancamento" type="date" /></div>
+                  <div><label>first_air_date</label><input id="mFirstAir" type="date" /></div>
+                  <div><label>last_air_date</label><input id="mLastAir" type="date" /></div>
+
+                  <div><label>runtime (min)</label><input id="mRuntime" type="number" min="0" /></div>
+                  <div><label>episode_run_time (JSON array)</label><input id="mEpRunTime" class="mono" placeholder='[42,45]' /></div>
+
+                  <div><label>nº temporadas</label><input id="mSeasons" type="number" min="0" /></div>
+                  <div><label>nº episódios</label><input id="mEpisodes" type="number" min="0" /></div>
+
+                  <div class="full"><label>production_companies (JSON)</label><textarea id="mProdCompanies" class="mono" rows="2"></textarea></div>
+                  <div class="full"><label>production_countries (JSON)</label><textarea id="mProdCountries" class="mono" rows="2"></textarea></div>
+                  <div class="full"><label>spoken_languages (JSON)</label><textarea id="mSpokenLang" class="mono" rows="2"></textarea></div>
+                  <div class="full"><label>networks (JSON)</label><textarea id="mNetworks" class="mono" rows="2"></textarea></div>
+                  <div class="full"><label>origin_country (JSON)</label><textarea id="mOriginCountry" class="mono" rows="2"></textarea></div>
+
+                  <div class="full"><label>cast_data (JSON)</label><textarea id="mCast" class="mono" rows="3"></textarea></div>
+                  <div class="full"><label>keywords (JSON)</label><textarea id="mKeywords" class="mono" rows="2"></textarea></div>
+                  <div class="full"><label>videos (JSON)</label><textarea id="mVideos" class="mono" rows="2"></textarea></div>
+                  <div class="full"><label>images (JSON)</label><textarea id="mImages" class="mono" rows="2"></textarea></div>
+                  <div class="full"><label>watch_providers (JSON)</label><textarea id="mWatchProviders" class="mono" rows="2"></textarea></div>
+                  <div class="full"><label>belongs_to_collection (JSON)</label><textarea id="mCollection" class="mono" rows="2"></textarea></div>
+                </div>
+              </div>
+            </details>
           </div>
+        </div>
+
+        <!-- EPISÓDIOS -->
+        <div id="epsSection" style="display:none;margin-top:14px">
+          <div class="divider"></div>
+          <div class="row" style="justify-content:space-between;align-items:flex-end">
+            <div>
+              <h3 style="margin:0;font-size:1.02rem;font-weight:650">Guia de Episódios</h3>
+              <div class="small">Agrupado por temporada e por status.</div>
+            </div>
+            <div class="row">
+              <button class="btn secondary small" id="btnNovoEp" type="button">+ Episódio</button>
+            </div>
+          </div>
+
+          <div id="epFormBox" class="panel" style="display:none;margin-top:10px">
+            <div class="row" style="justify-content:space-between">
+              <div style="font-weight:650">Cadastrar/Editar episódio</div>
+              <button class="btn ghost small" id="btnCancelarEp" type="button">Fechar</button>
+            </div>
+            <div class="divider"></div>
+
+            <form id="formEp" class="formGrid">
+              <input type="hidden" id="epId" />
+
+              <div><label>Temporada</label><input id="epTemp" type="number" min="1" required /></div>
+              <div><label>Nº episódio</label><input id="epNum" type="number" min="1" required /></div>
+
+              <div class="full"><label>Título</label><input id="epTitulo" placeholder="Opcional" /></div>
+
+              <div class="full"><label>Resumo</label><textarea id="epResumo" rows="3" placeholder="Resumo do episódio"></textarea></div>
+
+              <div><label>Status</label>
+                <select id="epStatus">
+                  <option value="AINDA_NAO_COMECEI">Ainda não comecei</option>
+                  <option value="ASSISTINDO">Assistindo</option>
+                  <option value="ASSISTIDOS">Assistidos</option>
+                </select>
+              </div>
+
+              <div class="full">
+                <label>Avaliação do episódio (0 a 5, meia estrela)</label>
+                <div class="ratingRow">
+                  <div class="starsBox" id="starsEp">☆☆☆☆☆</div>
+                  <input id="epAvaliacao" placeholder="Ex: 0,5 ou 3.5" inputmode="decimal" style="max-width:220px" />
+                </div>
+              </div>
+
+              <div class="row full">
+                <button class="btn primary" type="submit">Salvar episódio</button>
+              </div>
+            </form>
+          </div>
+
+          <div id="epsGrouped" style="margin-top:10px"></div>
+        </div>
+      </div>
+
+      <div class="modalFooter">
+        <div class="row">
+          <button class="btn danger" id="btnExcluir">Excluir</button>
+        </div>
+        <div class="row">
+          <button class="btn ghost" id="btnEditar">Editar</button>
+          <button class="btn primary" id="btnSalvar">Salvar</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- MODAL MÍDIA (detalhes) -->
-  <div class="modal" id="midiaModal" aria-hidden="true">
-    <div class="modal-card" role="dialog" aria-modal="true" aria-label="Detalhes da mídia">
-      <div class="modal-head">
-        <div class="modal-title">
-          <h2 id="mTitle">Mídia</h2>
-          <p id="mMeta">—</p>
-        </div>
-        <div class="close" id="mClose" title="Fechar (ESC)">×</div>
-      </div>
+  <div class="toast" id="toast"></div>
 
-      <div class="modal-body">
-        <div class="box">
-          <div class="box-head">
-            <h3>Dados</h3>
-            <span class="muted" id="mId">ID: —</span>
-          </div>
-          <div class="field">
-            <label>Título</label>
-            <input id="mTitulo" disabled />
-          </div>
-          <div class="field">
-            <label>Tipo</label>
-            <input id="mTipo" disabled />
-          </div>
-          <div class="field">
-            <label>Sinopse (se existir)</label>
-            <textarea id="mSinopse" disabled></textarea>
-          </div>
-          <div class="hint">
-            Este HTML é focado no <b>cast_data</b>. Você pode reaproveitar e encaixar no seu layout maior sem “procurar”.
-          </div>
-        </div>
-
-        <!-- ✅ ELENCO (cast_data) -->
-        <section class="box">
-          <div class="box-head">
-            <h3>Elenco</h3>
-            <span class="muted" id="castCount">0</span>
-          </div>
-
-          <div id="castGrid" class="cast-grid"></div>
-
-          <div id="castEmpty" class="muted" style="display:none; margin-top:8px;">
-            Sem elenco cadastrado.
-          </div>
-
-          <div class="hint">
-            Clique numa foto para ampliar. Se vier TMDB em <code class="k">/w185</code>, o zoom tenta trocar para <code class="k">/original</code>.
-          </div>
-        </section>
-      </div>
-    </div>
-  </div>
-
-  <!-- ✅ MODAL ZOOM (foto do cast) -->
-  <div class="cast-zoom-modal" id="castZoomModal" aria-hidden="true">
-    <div class="cast-zoom-card" role="dialog" aria-modal="true" aria-label="Foto do elenco">
-      <button class="cast-zoom-close" id="castZoomClose" title="Fechar (ESC)">×</button>
-
-      <div class="cast-zoom-body">
-        <img id="castZoomImg" alt="Foto do elenco" />
-      </div>
-
-      <div class="cast-zoom-info">
-        <div class="cast-zoom-name" id="castZoomName">Nome</div>
-        <div class="cast-zoom-role" id="castZoomRole">Personagem</div>
-        <a class="cast-zoom-link" id="castZoomLink" href="#" target="_blank" rel="noopener">Abrir imagem</a>
-      </div>
-    </div>
-  </div>
-
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    // ==========================================================
-    // CONFIG
-    // ==========================================================
-    const CONFIG_KEY = "midias_app_supabase_config_v1";
+    // ======= SUPABASE (suas chaves) =======
+    const SUPABASE_URL = "https://koytoiwfvwzjvgcqhlal.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsImxlZiI6ImtveXRvaXdmdnd6anZnY3FobGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxNDExNzAsImV4cCI6MjA3OTcxNzE3MH0.mrMRUGJFqzOBjj7M4giHcWr5qsqUn_0woVMFikDxrjM";
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Ajuste aqui se seus campos têm nomes diferentes
-    const FIELD_MAP = {
-      id: "id",
-      title: ["titulo","title","nome","name"],
-      type: ["tipo","type"],
-      overview: ["sinopse","overview","descricao","description"],
-      cast: ["cast_data","cast","elenco","castdata"]
-    };
+    // ======= TMDb (suas chaves) =======
+    const TMDB_API_KEY = "34d1febeb2c306bd928d270c1990c076";
+    const TMDB_BEARER = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIzNGQxZmViZWIyYzMwNmJkOTI4ZDI3MGMxOTkwYzA3NiIsIm5iZiI6MTc2NDU0NzczNC43MDIwMDAxLCJzdWIiOiI2OTJjZGM5Njg1ZTg0OGEwYjAyNmVhZTYiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.Htppj_TDovsK4-xrjzwZrBduPQJZSy9HErIjkvm8DgY";
+    const TMDB_IMG = "https://image.tmdb.org/t/p/w500";
 
-    // ==========================================================
-    // DOM
-    // ==========================================================
-    const $ = (sel) => document.querySelector(sel);
-
-    const sbUrl = $("#sbUrl");
-    const sbKey = $("#sbKey");
-    const sbTable = $("#sbTable");
-    const sbOrder = $("#sbOrder");
-
-    const btnConnect = $("#btnConnect");
-    const btnSaveConfig = $("#btnSaveConfig");
-    const btnClearConfig = $("#btnClearConfig");
-
-    const connDot = $("#connDot");
-    const connTxt = $("#connTxt");
-
-    const search = $("#search");
-    const midiasList = $("#midiasList");
-    const midiasEmpty = $("#midiasEmpty");
-    const midiasCount = $("#midiasCount");
-
-    // Modal mídia
-    const midiaModal = $("#midiaModal");
-    const mClose = $("#mClose");
-    const mTitle = $("#mTitle");
-    const mMeta = $("#mMeta");
-    const mId = $("#mId");
-    const mTitulo = $("#mTitulo");
-    const mTipo = $("#mTipo");
-    const mSinopse = $("#mSinopse");
-
-    // Elenco no modal mídia
-    const castGrid = $("#castGrid");
-    const castCount = $("#castCount");
-    const castEmpty = $("#castEmpty");
-
-    // Modal zoom
-    const castZoomModal = $("#castZoomModal");
-    const castZoomClose = $("#castZoomClose");
-    const castZoomImg = $("#castZoomImg");
-    const castZoomName = $("#castZoomName");
-    const castZoomRole = $("#castZoomRole");
-    const castZoomLink = $("#castZoomLink");
-
-    // ==========================================================
-    // STATE
-    // ==========================================================
-    let supabaseClient = null;
-    let allMidias = [];
-
-    // ==========================================================
-    // HELPERS
-    // ==========================================================
-    function setConnStatus(type, text){
-      connDot.className = "dot";
-      if(type === "ok") connDot.classList.add("ok");
-      if(type === "err") connDot.classList.add("err");
-      connTxt.textContent = text;
+    // ========= Toast =========
+    const toast = document.getElementById("toast");
+    function msg(text, type="ok"){
+      toast.className = "toast " + (type==="err"?"err":"ok");
+      toast.textContent = text;
+      toast.classList.add("show");
+      clearTimeout(window.__t);
+      window.__t = setTimeout(()=>toast.classList.remove("show"), 2400);
     }
 
-    function safeStr(v){ return (v === null || v === undefined) ? "" : String(v); }
-
-    function pickField(obj, candidates){
-      if(!obj) return "";
-      if(typeof candidates === "string") return obj[candidates];
-      for(const k of candidates){
-        if(obj[k] !== undefined && obj[k] !== null) return obj[k];
-      }
-      return "";
+    // ========= Rating (0,5) =========
+    function sanitizeRating(value){
+      if (value === null || value === undefined) return null;
+      let s = String(value).trim();
+      if (!s) return null;
+      s = s.replace(",", ".");
+      let n = Number(s);
+      if (!Number.isFinite(n)) return null;
+      n = Math.max(0, Math.min(5, n));
+      n = Math.round(n * 2) / 2;
+      return n;
+    }
+    function starsString(r){
+      const n = sanitizeRating(r);
+      if (n === null) return "☆☆☆☆☆";
+      const full = Math.floor(n);
+      const half = (n - full) >= 0.5 ? 1 : 0;
+      const empty = Math.max(0, 5 - full - half);
+      return "★".repeat(full) + (half ? "⯨" : "") + "☆".repeat(empty);
+    }
+    function bindStars(starsEl, inputEl){
+      function sync(){ starsEl.textContent = starsString(inputEl.value); }
+      starsEl.addEventListener("click", (ev)=>{
+        if(starsEl.classList.contains("readonly")) return;
+        const rect = starsEl.getBoundingClientRect();
+        const x = ev.clientX - rect.left;
+        const ratio = Math.max(0, Math.min(1, x / rect.width));
+        let rating = Math.round(ratio * 10) / 2;
+        rating = Math.max(0, Math.min(5, rating));
+        inputEl.value = String(rating).replace(".0","").replace(".", ",");
+        sync();
+      });
+      inputEl.addEventListener("input", sync);
+      sync();
     }
 
+    function statusLabel(s){
+      if(s==="ASSISTINDO") return "Assistindo";
+      if(s==="ASSISTIDOS") return "Assistidos";
+      return "Ainda não comecei";
+    }
+    function statusClass(s){
+      if(s==="ASSISTINDO") return "st-assistindo";
+      if(s==="ASSISTIDOS") return "st-assistidos";
+      return "st-nao";
+    }
+    function safePoster(url){
+      return url && String(url).trim()
+        ? url.trim()
+        : "https://via.placeholder.com/300x450.png?text=Sem+Imagem";
+    }
     function escapeHtml(str){
-      return safeStr(str)
+      return String(str ?? "")
         .replaceAll("&","&amp;")
         .replaceAll("<","&lt;")
         .replaceAll(">","&gt;")
         .replaceAll('"',"&quot;")
         .replaceAll("'","&#039;");
     }
-
-    function makeFallbackAvatar(name){
-      const initials = (safeStr(name).trim().split(/\s+/).slice(0,2).map(s=>s[0]?.toUpperCase()||"").join("") || "👤");
-      const svg = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="360" height="480">
-          <defs>
-            <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stop-color="#20263a"/>
-              <stop offset="1" stop-color="#121628"/>
-            </linearGradient>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#g)"/>
-          <circle cx="180" cy="185" r="78" fill="rgba(255,255,255,.08)"/>
-          <rect x="78" y="285" width="204" height="120" rx="60" fill="rgba(255,255,255,.07)"/>
-          <text x="50%" y="56%" font-family="system-ui,Segoe UI,Roboto,Arial" font-size="64" fill="rgba(255,255,255,.85)" text-anchor="middle">${escapeHtml(initials)}</text>
-        </svg>
-      `;
-      return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+    function normalizeUrl(u){
+      if(/^https?:\/\//i.test(u)) return u;
+      return "https://" + u;
     }
 
-    function buildImgUrl(url){
-      if(!url) return "";
-      if(/^https?:\/\//i.test(url)) return url;
-
-      // TMDB path tipo "/abc.jpg"
-      if(url.startsWith("/")) return "https://image.tmdb.org/t/p/w185" + url;
-
-      return url;
+    // ========= JSON helpers =========
+    function tryParseJSON(text){
+      const s = String(text||"").trim();
+      if(!s) return null;
+      try{ return JSON.parse(s); }catch{ return "__INVALID__"; }
+    }
+    function toJsonString(v){
+      if(v === null || v === undefined) return "";
+      try{ return JSON.stringify(v, null, 2); }catch{ return ""; }
     }
 
-    function toOriginalIfPossible(url){
-      if(!url) return url;
-      const m = url.match(/\/t\/p\/(w\d+|h\d+|original)\//);
-      if(m) return url.replace(/\/t\/p\/(w\d+|h\d+|original)\//, "/t/p/original/");
-      return url.replace("w185", "original").replace("w92", "original").replace("w154", "original");
+    // ========= State =========
+    let midias = [];
+    let current = null;
+    let modalMode = "view"; // view | edit | create
+    let eps = [];
+
+    // ========= Filters =========
+    const fStatus = document.getElementById("fStatus");
+    const fTipo = document.getElementById("fTipo");
+    const fNome = document.getElementById("fNome");
+    const fNota = document.getElementById("fNota");
+    const countInfo = document.getElementById("countInfo");
+    const lista = document.getElementById("lista");
+
+    // TOPS refs
+    const topBest = document.getElementById("topBest");
+    const topWorst = document.getElementById("topWorst");
+    const topLast = document.getElementById("topLast");
+    const topBestCount = document.getElementById("topBestCount");
+    const topWorstCount = document.getElementById("topWorstCount");
+    const topLastCount = document.getElementById("topLastCount");
+
+    // ========= Modal refs =========
+    const modalBackdrop = document.getElementById("modalBackdrop");
+    const btnFechar = document.getElementById("btnFechar");
+    const btnEditar = document.getElementById("btnEditar");
+    const btnSalvar = document.getElementById("btnSalvar");
+    const btnExcluir = document.getElementById("btnExcluir");
+
+    const modalTitle = document.getElementById("modalTitle");
+    const modalSub = document.getElementById("modalSub");
+    const mPoster = document.getElementById("mPoster");
+    const mBadgeTipo = document.getElementById("mBadgeTipo");
+    const mBadgeStatus = document.getElementById("mBadgeStatus");
+    const mStarsText = document.getElementById("mStarsText");
+
+    const mId = document.getElementById("mId");
+    const mNome = document.getElementById("mNome");
+    const mTipo = document.getElementById("mTipo");
+    const mStatus = document.getElementById("mStatus");
+    const mStreaming = document.getElementById("mStreaming");
+    const mAno = document.getElementById("mAno");
+    const mImagemUrl = document.getElementById("mImagemUrl");
+    const mLink = document.getElementById("mLink");
+    const mLinks = document.getElementById("mLinks");
+    const mAvaliacao = document.getElementById("mAvaliacao");
+    const mSinopse = document.getElementById("mSinopse");
+
+    const starsMidia = document.getElementById("starsMidia");
+    bindStars(starsMidia, mAvaliacao);
+
+    const linksViewBox = document.getElementById("linksViewBox");
+    const linksView = document.getElementById("linksView");
+
+    // Advanced fields
+    const advBox = document.getElementById("advBox");
+    const mTmdbId = document.getElementById("mTmdbId");
+    const mImdbId = document.getElementById("mImdbId");
+    const mTituloOriginal = document.getElementById("mTituloOriginal");
+    const mIdiomaOriginal = document.getElementById("mIdiomaOriginal");
+    const mTagline = document.getElementById("mTagline");
+    const mStatusOficial = document.getElementById("mStatusOficial");
+    const mVoteAverage = document.getElementById("mVoteAverage");
+    const mVoteCount = document.getElementById("mVoteCount");
+    const mPopularity = document.getElementById("mPopularity");
+    const mDataLancamento = document.getElementById("mDataLancamento");
+    const mFirstAir = document.getElementById("mFirstAir");
+    const mLastAir = document.getElementById("mLastAir");
+    const mRuntime = document.getElementById("mRuntime");
+    const mEpRunTime = document.getElementById("mEpRunTime");
+    const mSeasons = document.getElementById("mSeasons");
+    const mEpisodes = document.getElementById("mEpisodes");
+    const mProdCompanies = document.getElementById("mProdCompanies");
+    const mProdCountries = document.getElementById("mProdCountries");
+    const mSpokenLang = document.getElementById("mSpokenLang");
+    const mNetworks = document.getElementById("mNetworks");
+    const mOriginCountry = document.getElementById("mOriginCountry");
+    const mCast = document.getElementById("mCast");
+    const mKeywords = document.getElementById("mKeywords");
+    const mVideos = document.getElementById("mVideos");
+    const mImages = document.getElementById("mImages");
+    const mWatchProviders = document.getElementById("mWatchProviders");
+    const mCollection = document.getElementById("mCollection");
+
+    // TMDb UI
+    const tmdbSection = document.getElementById("tmdbSection");
+    const tmdbType = document.getElementById("tmdbType");
+    const tmdbQuery = document.getElementById("tmdbQuery");
+    const btnTmdbSearch = document.getElementById("btnTmdbSearch");
+    const btnTmdbClear = document.getElementById("btnTmdbClear");
+    const tmdbResults = document.getElementById("tmdbResults");
+
+    // ========= Episodes UI =========
+    const epsSection = document.getElementById("epsSection");
+    const btnNovoEp = document.getElementById("btnNovoEp");
+    const epFormBox = document.getElementById("epFormBox");
+    const btnCancelarEp = document.getElementById("btnCancelarEp");
+    const formEp = document.getElementById("formEp");
+    const epId = document.getElementById("epId");
+    const epTemp = document.getElementById("epTemp");
+    const epNum = document.getElementById("epNum");
+    const epTitulo = document.getElementById("epTitulo");
+    const epResumo = document.getElementById("epResumo");
+    const epStatus = document.getElementById("epStatus");
+    const epAvaliacao = document.getElementById("epAvaliacao");
+    const starsEp = document.getElementById("starsEp");
+    bindStars(starsEp, epAvaliacao);
+    const epsGrouped = document.getElementById("epsGrouped");
+
+    // ========= Buttons =========
+    document.getElementById("btnNovo").onclick = ()=>openModalCreate();
+    document.getElementById("btnRecarregar").onclick = ()=>loadMidias(true);
+
+    // ========= Load =========
+    async function loadMidias(showToast=false){
+      const { data, error } = await db.from("midias").select("*").order("created_at",{ascending:false});
+      if(error){
+        console.error(error);
+        msg("Erro ao carregar mídias", "err");
+        return;
+      }
+      midias = data || [];
+      renderAll();
+      if(showToast) msg("Atualizado ✅","ok");
     }
 
-    function normalizeCastItem(item){
-      return {
-        id: item?.id ?? item?.cast_id ?? item?.person_id ?? null,
-        nome: item?.nome ?? item?.name ?? "",
-        personagem: item?.personagem ?? item?.character ?? item?.role ?? "",
-        foto: item?.foto ?? item?.profile_path ?? item?.photo ?? "",
-        _raw: item
+    async function loadEps(midiaId){
+      const { data, error } = await db.from("episodios")
+        .select("*")
+        .eq("midia_id", midiaId) // midia_id uuid -> string
+        .order("temporada",{ascending:true})
+        .order("numero",{ascending:true});
+
+      if(error){
+        console.error(error);
+        msg("Erro ao carregar episódios","err");
+        eps = [];
+        renderEpisodes();
+        return;
+      }
+      eps = data || [];
+      renderEpisodes();
+    }
+
+    function renderAll(){
+      renderTops();
+      renderList();
+    }
+
+    // ========= TOPS =========
+    function getCreatedKey(m){
+      if(m.created_at) return new Date(m.created_at).getTime() || 0;
+      return 0;
+    }
+    function renderTopList(container, items){
+      container.innerHTML = "";
+      if(!items.length){
+        container.innerHTML = `<div class="small" style="padding:10px 12px">Sem dados.</div>`;
+        return;
+      }
+      for(const m of items){
+        const div = document.createElement("div");
+        div.className = "topItem";
+        div.onclick = ()=>openModalView(m);
+        const n = sanitizeRating(m.avaliacao);
+        div.innerHTML = `
+          <div class="name">${escapeHtml(m.nome||"-")}</div>
+          <div class="note">${n===null? "-" : String(n).replace(".0","")}</div>
+          <div class="stars">${starsString(m.avaliacao)}</div>
+        `;
+        container.appendChild(div);
+      }
+    }
+    function renderTops(){
+      const rated = midias.map(m=>({m, n:sanitizeRating(m.avaliacao)})).filter(x=>x.n !== null);
+      const best = [...rated].sort((a,b)=>b.n-a.n || (getCreatedKey(b.m)-getCreatedKey(a.m))).slice(0,10).map(x=>x.m);
+      const worst = [...rated].sort((a,b)=>a.n-b.n || (getCreatedKey(b.m)-getCreatedKey(a.m))).slice(0,10).map(x=>x.m);
+      const last = [...midias].sort((a,b)=>getCreatedKey(b)-getCreatedKey(a)).slice(0,10);
+
+      topBestCount.textContent = `(${best.length})`;
+      topWorstCount.textContent = `(${worst.length})`;
+      topLastCount.textContent = `(${last.length})`;
+
+      renderTopList(topBest, best);
+      renderTopList(topWorst, worst);
+      renderTopList(topLast, last);
+    }
+
+    // ========= LIST =========
+    function getFiltered(){
+      let arr = [...midias];
+      const st = fStatus.value;
+      const tp = fTipo.value;
+      const q = fNome.value.trim().toLowerCase();
+      const minNota = sanitizeRating(fNota.value);
+
+      if(st) arr = arr.filter(m=>m.status===st);
+      if(tp) arr = arr.filter(m=>m.tipo===tp);
+      if(q) arr = arr.filter(m=>(m.nome||"").toLowerCase().includes(q));
+      if(minNota !== null){
+        arr = arr.filter(m=>{
+          const n = sanitizeRating(m.avaliacao);
+          return n !== null && n >= minNota;
+        });
+      }
+      return arr;
+    }
+
+    function renderList(){
+      const arr = getFiltered();
+      countInfo.textContent = `${arr.length} item(ns)`;
+      lista.innerHTML = "";
+
+      if(!arr.length){
+        lista.innerHTML = `<div class="panel"><span class="small">Nada encontrado com os filtros.</span></div>`;
+        return;
+      }
+
+      for(const m of arr){
+        const card = document.createElement("div");
+        card.className = "card";
+        card.onclick = ()=>openModalView(m);
+
+        const poster = document.createElement("div");
+        poster.className = "poster";
+        poster.innerHTML = `<img src="${safePoster(m.imagem_url)}" alt="">`;
+
+        const content = document.createElement("div");
+        content.className = "content";
+
+        const tl = document.createElement("div");
+        tl.className = "titleLine";
+        tl.innerHTML = `
+          <div class="title">${escapeHtml(m.nome || "(sem nome)")}</div>
+          <span class="badge">${m.tipo==="SERIE"?"Série":"Filme"}</span>
+        `;
+
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        meta.textContent = [m.ano, m.streaming].filter(Boolean).join(" • ");
+
+        const footer = document.createElement("div");
+        footer.className = "footer";
+
+        const st = document.createElement("span");
+        st.className = `status ${statusClass(m.status)}`;
+        st.textContent = statusLabel(m.status);
+
+        const stars = document.createElement("div");
+        stars.className = "starsInline";
+        const n = sanitizeRating(m.avaliacao);
+        stars.innerHTML = `<span class="mut">${n===null? "-" : String(n).replace(".0","")}</span> <span>${starsString(m.avaliacao)}</span>`;
+
+        footer.appendChild(st);
+        footer.appendChild(stars);
+
+        content.appendChild(tl);
+        content.appendChild(meta);
+        content.appendChild(footer);
+
+        card.appendChild(poster);
+        card.appendChild(content);
+
+        lista.appendChild(card);
+      }
+    }
+
+    // ========= Modal helpers =========
+    function setInputsEnabled(enabled){
+      const fields = [
+        mNome,mTipo,mStatus,mStreaming,mAno,mImagemUrl,mLink,mLinks,mAvaliacao,mSinopse,
+        mTmdbId,mImdbId,mTituloOriginal,mIdiomaOriginal,mTagline,mStatusOficial,mVoteAverage,mVoteCount,mPopularity,
+        mDataLancamento,mFirstAir,mLastAir,mRuntime,mEpRunTime,mSeasons,mEpisodes,mProdCompanies,mProdCountries,
+        mSpokenLang,mNetworks,mOriginCountry,mCast,mKeywords,mVideos,mImages,mWatchProviders,mCollection
+      ];
+      fields.forEach(el=> el.disabled = !enabled);
+      starsMidia.classList.toggle("readonly", !enabled);
+      btnSalvar.style.display = enabled ? "inline-flex" : "none";
+      advBox.open = enabled;
+    }
+
+    function fillLinksView(){
+      linksView.innerHTML = "";
+      const all = [];
+      const link1 = (mLink.value || "").trim();
+      if(link1) all.push(link1);
+      const text = (mLinks.value || "").trim();
+      if(text){
+        text.split("\n").map(s=>s.trim()).filter(Boolean).forEach(u=>all.push(u));
+      }
+      if(!all.length){
+        linksViewBox.style.display = "none";
+        return;
+      }
+      linksViewBox.style.display = "block";
+      const uniq = [...new Set(all)];
+      for(const u of uniq){
+        const a = document.createElement("a");
+        a.className = "link";
+        a.href = normalizeUrl(u);
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.textContent = u;
+        linksView.appendChild(a);
+      }
+    }
+
+    function openBackdrop(){
+      modalBackdrop.classList.add("show");
+      modalBackdrop.setAttribute("aria-hidden","false");
+    }
+    function closeBackdrop(){
+      modalBackdrop.classList.remove("show");
+      modalBackdrop.setAttribute("aria-hidden","true");
+      current = null;
+      eps = [];
+      epsGrouped.innerHTML = "";
+      epFormBox.style.display = "none";
+      tmdbResults.style.display="none";
+      tmdbResults.innerHTML="";
+      tmdbQuery.value="";
+    }
+
+    btnFechar.onclick = closeBackdrop;
+    modalBackdrop.addEventListener("click",(e)=>{ if(e.target === modalBackdrop) closeBackdrop(); });
+    window.addEventListener("keydown",(e)=>{ if(e.key==="Escape" && modalBackdrop.classList.contains("show")) closeBackdrop(); });
+
+    function showTmdbBox(show){
+      tmdbSection.style.display = show ? "block" : "none";
+    }
+
+    function clearAdvanced(){
+      [
+        mTmdbId,mImdbId,mTituloOriginal,mIdiomaOriginal,mTagline,mStatusOficial,mVoteAverage,mVoteCount,mPopularity,
+        mDataLancamento,mFirstAir,mLastAir,mRuntime,mEpRunTime,mSeasons,mEpisodes,mProdCompanies,mProdCountries,mSpokenLang,
+        mNetworks,mOriginCountry,mCast,mKeywords,mVideos,mImages,mWatchProviders,mCollection
+      ].forEach(el=>el.value="");
+    }
+
+    function openModalCreate(){
+      modalMode = "create";
+      current = null;
+
+      modalTitle.textContent = "Nova mídia";
+      modalSub.textContent = "Preencha e clique em Salvar (ou use TMDb acima).";
+      btnEditar.style.display = "none";
+      btnExcluir.style.display = "none";
+
+      showTmdbBox(true);
+
+      mId.value = "";
+      mNome.value = "";
+      mTipo.value = "FILME";
+      mStatus.value = "ASSISTINDO";
+      mStreaming.value = "";
+      mAno.value = "";
+      mImagemUrl.value = "";
+      mLink.value = "";
+      mLinks.value = "";
+      mAvaliacao.value = "";
+      mSinopse.value = "";
+      clearAdvanced();
+
+      mPoster.src = safePoster("");
+      mBadgeTipo.textContent = "-";
+      mBadgeStatus.textContent = "-";
+      mStarsText.textContent = "";
+      document.getElementById("starsMidia").textContent = "☆☆☆☆☆";
+
+      linksViewBox.style.display = "none";
+      epsSection.style.display = "none";
+
+      setInputsEnabled(true);
+      openBackdrop();
+    }
+
+    async function openModalView(m){
+      modalMode = "view";
+      current = m;
+
+      modalTitle.textContent = "Detalhes";
+      modalSub.textContent = `ID ${m.id}`;
+      btnEditar.style.display = "inline-flex";
+      btnExcluir.style.display = "inline-flex";
+
+      showTmdbBox(false);
+
+      mId.value = m.id; // uuid string
+      mNome.value = m.nome || "";
+      mTipo.value = m.tipo || "FILME";
+      mStatus.value = m.status || "ASSISTINDO";
+      mStreaming.value = m.streaming || "";
+      mAno.value = m.ano || "";
+      mImagemUrl.value = m.imagem_url || "";
+      mLink.value = m.link || "";
+      mLinks.value = m.links || "";
+      mAvaliacao.value = (sanitizeRating(m.avaliacao) ?? "").toString().replace(".", ",");
+      mSinopse.value = m.sinopse || "";
+
+      // advanced
+      mTmdbId.value = (m.tmdb_id ?? "");
+      mImdbId.value = (m.imdb_id ?? "");
+      mTituloOriginal.value = (m.titulo_original ?? "");
+      mIdiomaOriginal.value = (m.idioma_original ?? "");
+      mTagline.value = (m.tagline ?? "");
+      mStatusOficial.value = (m.status_oficial ?? "");
+      mVoteAverage.value = (m.vote_average ?? "");
+      mVoteCount.value = (m.vote_count ?? "");
+      mPopularity.value = (m.popularity ?? "");
+      mDataLancamento.value = (m.data_lancamento ?? "");
+      mFirstAir.value = (m.first_air_date ?? "");
+      mLastAir.value = (m.last_air_date ?? "");
+      mRuntime.value = (m.runtime ?? "");
+      mEpRunTime.value = toJsonString(m.episode_run_time);
+      mSeasons.value = (m.number_of_seasons ?? "");
+      mEpisodes.value = (m.number_of_episodes ?? "");
+      mProdCompanies.value = toJsonString(m.production_companies);
+      mProdCountries.value = toJsonString(m.production_countries);
+      mSpokenLang.value = toJsonString(m.spoken_languages);
+      mNetworks.value = toJsonString(m.networks);
+      mOriginCountry.value = toJsonString(m.origin_country);
+      mCast.value = toJsonString(m.cast_data); // <<< cast_data
+      mKeywords.value = toJsonString(m.keywords);
+      mVideos.value = toJsonString(m.videos);
+      mImages.value = toJsonString(m.images);
+      mWatchProviders.value = toJsonString(m.watch_providers);
+      mCollection.value = toJsonString(m.belongs_to_collection);
+
+      mPoster.src = safePoster(m.imagem_url);
+      mBadgeTipo.textContent = m.tipo==="SERIE" ? "Série" : "Filme";
+      mBadgeStatus.textContent = statusLabel(m.status);
+
+      const n = sanitizeRating(m.avaliacao);
+      mStarsText.textContent = `Avaliação: ${n===null ? "-" : n}  •  ${starsString(m.avaliacao)}`;
+      document.getElementById("starsMidia").textContent = starsString(m.avaliacao);
+
+      fillLinksView();
+
+      if(m.tipo === "SERIE"){
+        epsSection.style.display = "block";
+        await loadEps(m.id);
+      } else {
+        epsSection.style.display = "none";
+      }
+
+      setInputsEnabled(false);
+      openBackdrop();
+    }
+
+    btnEditar.onclick = ()=>{
+      if(!current) return;
+      modalMode = "edit";
+      modalTitle.textContent = "Editar mídia";
+      modalSub.textContent = `Editando: ${current.nome || ""}`;
+      setInputsEnabled(true);
+      btnEditar.style.display = "none";
+      linksViewBox.style.display = "none";
+      showTmdbBox(true);
+      tmdbType.value = (mTipo.value === "SERIE") ? "tv" : "movie";
+    };
+
+    function numberOrNull(v){
+      const s = String(v ?? "").trim();
+      if(!s) return null;
+      const n = Number(s.replace(",", "."));
+      return Number.isFinite(n) ? n : null;
+    }
+    function intOrNull(v){
+      const s = String(v ?? "").trim();
+      if(!s) return null;
+      const n = Number(s);
+      return Number.isFinite(n) ? Math.trunc(n) : null;
+    }
+    function dateOrNull(v){
+      const s = String(v ?? "").trim();
+      return s ? s : null;
+    }
+    function jsonOrNullFromField(fieldEl){
+      const parsed = tryParseJSON(fieldEl.value);
+      if(parsed === "__INVALID__"){
+        throw new Error("JSON inválido em: " + fieldEl.id);
+      }
+      return parsed;
+    }
+
+    document.getElementById("btnSalvar").onclick = async ()=>{
+      try{
+        const payload = {
+          nome: mNome.value.trim(),
+          tipo: mTipo.value,
+          status: mStatus.value,
+          streaming: mStreaming.value.trim() || null,
+          ano: mAno.value ? Number(mAno.value) : null,
+          imagem_url: mImagemUrl.value.trim() || null,
+          link: mLink.value.trim() || null,
+          links: mLinks.value.trim() || null,
+          avaliacao: sanitizeRating(mAvaliacao.value),
+          sinopse: mSinopse.value.trim() || null,
+
+          tmdb_id: intOrNull(mTmdbId.value),
+          imdb_id: mImdbId.value.trim() || null,
+          titulo_original: mTituloOriginal.value.trim() || null,
+          idioma_original: mIdiomaOriginal.value.trim() || null,
+          tagline: mTagline.value.trim() || null,
+          status_oficial: mStatusOficial.value.trim() || null,
+          vote_average: numberOrNull(mVoteAverage.value),
+          vote_count: intOrNull(mVoteCount.value),
+          popularity: numberOrNull(mPopularity.value),
+          data_lancamento: dateOrNull(mDataLancamento.value),
+          first_air_date: dateOrNull(mFirstAir.value),
+          last_air_date: dateOrNull(mLastAir.value),
+          runtime: intOrNull(mRuntime.value),
+          episode_run_time: jsonOrNullFromField(mEpRunTime),
+          number_of_seasons: intOrNull(mSeasons.value),
+          number_of_episodes: intOrNull(mEpisodes.value),
+
+          production_companies: jsonOrNullFromField(mProdCompanies),
+          production_countries: jsonOrNullFromField(mProdCountries),
+          spoken_languages: jsonOrNullFromField(mSpokenLang),
+          networks: jsonOrNullFromField(mNetworks),
+          origin_country: jsonOrNullFromField(mOriginCountry),
+
+          cast_data: jsonOrNullFromField(mCast), // <<< cast_data
+          keywords: jsonOrNullFromField(mKeywords),
+          videos: jsonOrNullFromField(mVideos),
+          images: jsonOrNullFromField(mImages),
+          watch_providers: jsonOrNullFromField(mWatchProviders),
+          belongs_to_collection: jsonOrNullFromField(mCollection),
+        };
+
+        if(!payload.nome){
+          msg("Nome é obrigatório.","err");
+          return;
+        }
+
+        if(payload.data_lancamento && !payload.ano){
+          payload.ano = Number(String(payload.data_lancamento).slice(0,4)) || null;
+        }
+        if(payload.first_air_date && !payload.ano && payload.tipo === "SERIE"){
+          payload.ano = Number(String(payload.first_air_date).slice(0,4)) || null;
+        }
+
+        if(modalMode === "create"){
+          const { error } = await db.from("midias").insert(payload);
+          if(error) throw error;
+          msg("Mídia criada ✅","ok");
+          await loadMidias(false);
+          closeBackdrop();
+          return;
+        }
+
+        const id = mId.value; // uuid string (SEM Number)
+        const { error } = await db.from("midias").update(payload).eq("id", id);
+        if(error) throw error;
+
+        msg("Mídia atualizada ✅","ok");
+        await loadMidias(false);
+
+        // reabrir com os dados atualizados
+        const updated = midias.find(x=>x.id===id) || { ...current, ...payload, id };
+        await openModalView(updated);
+      }catch(err){
+        console.error(err);
+        msg(String(err?.message||"Erro ao salvar (veja o console)."), "err");
+      }
+    };
+
+    btnExcluir.onclick = async ()=>{
+      if(!current) return;
+      if(!confirm("Excluir esta mídia?")) return;
+      const { error } = await db.from("midias").delete().eq("id", current.id);
+      if(error){
+        console.error(error);
+        msg("Erro ao excluir.","err");
+        return;
+      }
+      msg("Excluído ✅","ok");
+      await loadMidias(false);
+      closeBackdrop();
+    };
+
+    // ========= Episodes =========
+    btnNovoEp.onclick = ()=>{
+      if(!current) return;
+      epFormBox.style.display = "block";
+      clearEpForm();
+      epId.value = "";
+      epTemp.focus();
+    };
+    btnCancelarEp.onclick = ()=>{ epFormBox.style.display = "none"; };
+
+    function clearEpForm(){
+      epId.value = "";
+      epTemp.value = "";
+      epNum.value = "";
+      epTitulo.value = "";
+      epResumo.value = "";
+      epStatus.value = "AINDA_NAO_COMECEI";
+      epAvaliacao.value = "";
+      document.getElementById("starsEp").textContent = "☆☆☆☆☆";
+    }
+
+    formEp.addEventListener("submit", async (e)=>{
+      e.preventDefault();
+      if(!current) return;
+
+      const payload = {
+        midia_id: current.id, // uuid string
+        temporada: Number(epTemp.value),
+        numero: Number(epNum.value),
+        titulo: epTitulo.value.trim() || null,
+        resumo: epResumo.value.trim() || null,
+        status: epStatus.value,
+        avaliacao: sanitizeRating(epAvaliacao.value)
       };
+
+      if(!payload.temporada || !payload.numero){
+        msg("Temporada e número são obrigatórios.","err");
+        return;
+      }
+
+      try{
+        if(epId.value){
+          const { error } = await db.from("episodios").update(payload).eq("id", epId.value); // uuid string
+          if(error) throw error;
+          msg("Episódio atualizado ✅","ok");
+        }else{
+          const { error } = await db.from("episodios").insert(payload);
+          if(error) throw error;
+          msg("Episódio salvo ✅","ok");
+        }
+        epFormBox.style.display = "none";
+        clearEpForm();
+        await loadEps(current.id);
+      }catch(err){
+        console.error(err);
+        msg("Erro ao salvar episódio.","err");
+      }
+    });
+
+    async function delEp(id){
+      if(!confirm("Excluir episódio?")) return;
+      const { error } = await db.from("episodios").delete().eq("id", id); // uuid string
+      if(error){
+        console.error(error);
+        msg("Erro ao excluir episódio.","err");
+        return;
+      }
+      msg("Episódio excluído ✅","ok");
+      await loadEps(current.id);
     }
 
-    // ==========================================================
-    // SUPABASE (REST) - sem libs externas
-    // ==========================================================
-    async function sbFetch(path, { method="GET", body=null } = {}){
-      const base = sbUrl.value.trim().replace(/\/+$/,"");
-      const key = sbKey.value.trim();
-      if(!base || !key) throw new Error("Supabase URL/Key não informados.");
+    function editEp(ep){
+      epFormBox.style.display = "block";
+      epId.value = ep.id; // uuid string
+      epTemp.value = ep.temporada;
+      epNum.value = ep.numero;
+      epTitulo.value = ep.titulo || "";
+      epResumo.value = ep.resumo || "";
+      epStatus.value = ep.status || "AINDA_NAO_COMECEI";
+      epAvaliacao.value = (sanitizeRating(ep.avaliacao) ?? "").toString().replace(".", ",");
+      document.getElementById("starsEp").textContent = starsString(ep.avaliacao);
+    }
 
-      const url = base + "/rest/v1/" + path;
-      const headers = {
-        "apikey": key,
-        "Authorization": "Bearer " + key,
-        "Content-Type": "application/json",
-        "Accept": "application/json"
-      };
+    function groupEps(){
+      const map = new Map();
+      for(const ep of eps){
+        const t = ep.temporada || 0;
+        if(!map.has(t)) map.set(t, new Map());
+        const st = ep.status || "AINDA_NAO_COMECEI";
+        const m2 = map.get(t);
+        if(!m2.has(st)) m2.set(st, []);
+        m2.get(st).push(ep);
+      }
+      const seasons = [...map.keys()].sort((a,b)=>a-b);
+      return {map, seasons};
+    }
 
-      const res = await fetch(url, { method, headers, body: body ? JSON.stringify(body) : null });
+    function renderEpisodes(){
+      epsGrouped.innerHTML = "";
+      if(!current || current.tipo!=="SERIE") return;
+
+      if(!eps.length){
+        epsGrouped.innerHTML = `<div class="panel"><span class="small">Nenhum episódio cadastrado ainda.</span></div>`;
+        return;
+      }
+
+      const { map, seasons } = groupEps();
+      for(const temporada of seasons){
+        const det = document.createElement("details");
+        det.className = "ep";
+        det.open = true;
+
+        const totalSeason = [...map.get(temporada).values()].reduce((acc,arr)=>acc+arr.length,0);
+        const sum = document.createElement("summary");
+        sum.innerHTML = `Temporada ${temporada} <span class="small">(${totalSeason} episódio(s))</span>`;
+        det.appendChild(sum);
+
+        const wrap = document.createElement("div");
+        wrap.className = "epWrap";
+
+        const order = ["ASSISTINDO","ASSISTIDOS","AINDA_NAO_COMECEI"];
+        for(const st of order){
+          const list = map.get(temporada).get(st) || [];
+          if(!list.length) continue;
+
+          const title = document.createElement("div");
+          title.className = "epGroupTitle";
+          title.textContent = `${statusLabel(st)} (${list.length})`;
+          wrap.appendChild(title);
+
+          const table = document.createElement("table");
+          table.className = "epTable";
+          table.innerHTML = `
+            <thead>
+              <tr>
+                <th style="width:90px">Episódio</th>
+                <th>Título / Resumo</th>
+                <th style="width:140px">Nota</th>
+                <th style="width:180px">Ações</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          `;
+          const tb = table.querySelector("tbody");
+          list.sort((a,b)=>(a.numero||0)-(b.numero||0));
+
+          for(const ep of list){
+            const nota = sanitizeRating(ep.avaliacao);
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td><b>E${String(ep.numero||0).padStart(2,"0")}</b></td>
+              <td>
+                <div style="font-weight:650">${escapeHtml(ep.titulo||"-")}</div>
+                <div class="small" style="margin-top:2px;white-space:pre-wrap">${escapeHtml(ep.resumo||"")}</div>
+              </td>
+              <td>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <span style="font-weight:650;color:#111827">${nota===null? "-" : String(nota).replace(".0","")}</span>
+                  <span>${starsString(ep.avaliacao)}</span>
+                </div>
+              </td>
+              <td></td>
+            `;
+            const td = tr.querySelector("td:last-child");
+            const actions = document.createElement("div");
+            actions.className = "epActions";
+
+            const b1 = document.createElement("button");
+            b1.className = "btn ghost small";
+            b1.textContent = "Editar";
+            b1.type = "button";
+            b1.onclick = ()=>editEp(ep);
+
+            const b2 = document.createElement("button");
+            b2.className = "btn danger small";
+            b2.textContent = "Excluir";
+            b2.type = "button";
+            b2.onclick = ()=>delEp(ep.id);
+
+            actions.appendChild(b1);
+            actions.appendChild(b2);
+            td.appendChild(actions);
+
+            tb.appendChild(tr);
+          }
+
+          wrap.appendChild(table);
+          wrap.appendChild(document.createElement("div")).className="divider";
+        }
+
+        det.appendChild(wrap);
+        epsGrouped.appendChild(det);
+      }
+    }
+
+    // ========= TMDb =========
+    async function tmdbFetch(path){
+      const url = `https://api.themoviedb.org/3${path}`;
+      const res = await fetch(url, {
+        headers: { "Authorization": `Bearer ${TMDB_BEARER}`, "Content-Type": "application/json;charset=utf-8" }
+      });
       if(!res.ok){
         const txt = await res.text().catch(()=> "");
-        throw new Error(`Erro Supabase (${res.status}): ${txt || res.statusText}`);
+        throw new Error(`TMDb error ${res.status}: ${txt}`);
       }
       return res.json();
     }
 
-    async function loadMidias(){
-      const table = sbTable.value.trim() || "midias";
-      const order = (sbOrder.value.trim() || "created_at.desc");
-      const select = "*";
-
-      // order=created_at.desc
-      const path = `${encodeURIComponent(table)}?select=${encodeURIComponent(select)}&order=${encodeURIComponent(order)}`;
-      const data = await sbFetch(path);
-      allMidias = Array.isArray(data) ? data : [];
-      renderMidias();
-      setConnStatus("ok", "Conectado");
-    }
-
-    // ==========================================================
-    // LISTA
-    // ==========================================================
-    function renderMidias(){
-      midiasList.innerHTML = "";
-      const q = safeStr(search.value).trim().toLowerCase();
-
-      const filtered = allMidias.filter(m => {
-        const title = safeStr(pickField(m, FIELD_MAP.title)).toLowerCase();
-        return !q || title.includes(q);
-      });
-
-      midiasCount.textContent = String(filtered.length);
-      midiasEmpty.style.display = filtered.length ? "none" : "block";
-
-      filtered.forEach(midia => {
-        const title = pickField(midia, FIELD_MAP.title) || "(Sem título)";
-        const type = pickField(midia, FIELD_MAP.type) || "—";
-        const id = pickField(midia, FIELD_MAP.id);
-
-        const el = document.createElement("div");
-        el.className = "item";
-        el.innerHTML = `
-          <div>
-            <p class="title">${escapeHtml(title)}</p>
-            <p class="meta">Tipo: ${escapeHtml(type)} • ID: ${escapeHtml(id)}</p>
-          </div>
-          <span class="tag">Abrir</span>
-        `;
-        el.addEventListener("click", () => openMidiaModal(midia));
-        midiasList.appendChild(el);
-      });
-    }
-
-    // ==========================================================
-    // MODAL MÍDIA + ELENCO (INTEGRAÇÃO REAL)
-    // ==========================================================
-    function openMidiaModal(midia){
-      const title = pickField(midia, FIELD_MAP.title) || "(Sem título)";
-      const type = pickField(midia, FIELD_MAP.type) || "—";
-      const overview = pickField(midia, FIELD_MAP.overview) || "";
-      const id = pickField(midia, FIELD_MAP.id);
-
-      mTitle.textContent = title;
-      mMeta.textContent = `Tipo: ${type}`;
-      mId.textContent = `ID: ${id}`;
-
-      mTitulo.value = title;
-      mTipo.value = type;
-      mSinopse.value = overview;
-
-      renderCastFromMidia(midia); // ✅ aqui é a integração real
-
-      midiaModal.classList.add("show");
-      midiaModal.setAttribute("aria-hidden","false");
-      document.body.style.overflow = "hidden";
-    }
-
-    function closeMidiaModal(){
-      midiaModal.classList.remove("show");
-      midiaModal.setAttribute("aria-hidden","true");
-      document.body.style.overflow = "";
-    }
-
-    mClose.addEventListener("click", closeMidiaModal);
-    midiaModal.addEventListener("click", (e) => { if(e.target === midiaModal) closeMidiaModal(); });
-
-    function renderCastFromMidia(midia){
-      castGrid.innerHTML = "";
-      castCount.textContent = "0";
-      castEmpty.style.display = "none";
-
-      // pega o campo cast_data (ou equivalente)
-      let cast = pickField(midia, FIELD_MAP.cast);
-
-      // pode vir jsonb (array/obj) ou string JSON
-      if(typeof cast === "string"){
-        cast = cast.trim();
-        if(cast){
-          try { cast = JSON.parse(cast); } catch(e){ cast = null; }
-        }
-      }
-
-      if(!Array.isArray(cast) || cast.length === 0){
-        castEmpty.style.display = "block";
+    function showTmdbResults(items, type){
+      tmdbResults.innerHTML = "";
+      if(!items.length){
+        tmdbResults.style.display = "block";
+        tmdbResults.innerHTML = `<div class="small" style="padding:10px 12px">Nada encontrado.</div>`;
         return;
       }
+      tmdbResults.style.display = "block";
 
-      const normalized = cast.map(normalizeCastItem);
+      items.slice(0, 12).forEach(item=>{
+        const name = type==="movie" ? item.title : item.name;
+        const date = type==="movie" ? item.release_date : item.first_air_date;
+        const year = (date||"").slice(0,4) || "-";
+        const poster = item.poster_path ? (TMDB_IMG + item.poster_path) : safePoster("");
 
-      normalized.forEach(actor => {
-        const card = document.createElement("div");
-        card.className = "cast-card";
-        card.tabIndex = 0;
-
-        const thumb = buildImgUrl(actor.foto);
-        const fallback = makeFallbackAvatar(actor.nome);
-
-        card.innerHTML = `
-          <div class="cast-photo">
-            <img src="${escapeHtml(thumb || fallback)}" alt="${escapeHtml(actor.nome)}" loading="lazy"
-                 onerror="this.onerror=null; this.src='${escapeHtml(fallback)}';" />
+        const div = document.createElement("div");
+        div.className = "tmdbItem";
+        div.innerHTML = `
+          <div class="tmdbThumb"><img src="${poster}" alt=""></div>
+          <div style="min-width:0;flex:1">
+            <div class="tmdbName">${escapeHtml(name||"-")}</div>
+            <div class="tmdbMeta">${year} • ${escapeHtml((item.overview||"").slice(0,80))}${(item.overview||"").length>80?"...":""}</div>
           </div>
-          <p class="cast-name" title="${escapeHtml(actor.nome)}">${escapeHtml(actor.nome || "Sem nome")}</p>
-          <p class="cast-role" title="${escapeHtml(actor.personagem)}">${escapeHtml(actor.personagem || "")}</p>
+          <button class="btn secondary small" type="button">Usar</button>
         `;
-
-        const open = () => openCastZoom(actor);
-        card.addEventListener("click", open);
-        card.addEventListener("keydown", (e) => {
-          if(e.key === "Enter" || e.key === " "){ e.preventDefault(); open(); }
-        });
-
-        castGrid.appendChild(card);
+        div.querySelector("button").onclick = async (e)=>{
+          e.stopPropagation();
+          await applyTmdbItem(type, item.id);
+        };
+        tmdbResults.appendChild(div);
       });
-
-      castCount.textContent = String(normalized.length);
     }
 
-    // ==========================================================
-    // MODAL ZOOM CAST
-    // ==========================================================
-    function openCastZoom(actor){
-      const thumb = buildImgUrl(actor?.foto);
-      const big = toOriginalIfPossible(thumb);
-      const fallback = makeFallbackAvatar(actor?.nome);
-
-      castZoomName.textContent = actor?.nome || "Sem nome";
-      castZoomRole.textContent = actor?.personagem || "—";
-
-      const finalUrl = big || thumb || "";
-      castZoomImg.src = finalUrl || fallback;
-      castZoomImg.onerror = () => { castZoomImg.onerror = null; castZoomImg.src = fallback; };
-
-      castZoomLink.href = finalUrl || "#";
-      castZoomLink.textContent = finalUrl ? "Abrir imagem" : "Sem URL";
-      castZoomLink.style.pointerEvents = finalUrl ? "auto" : "none";
-      castZoomLink.style.opacity = finalUrl ? "1" : ".6";
-
-      castZoomModal.classList.add("show");
-      castZoomModal.setAttribute("aria-hidden","false");
+    function pickTopCast(credits){
+      const cast = (credits?.cast || []).slice(0, 12).map(c=>({
+        id: c.id, name: c.name, character: c.character, order: c.order, profile_path: c.profile_path
+      }));
+      return cast;
+    }
+    function pickKeywords(type, kw){
+      const arr = type==="movie" ? (kw?.keywords||[]) : (kw?.results||[]);
+      return arr.slice(0, 30).map(k=>({ id:k.id, name:k.name }));
     }
 
-    function closeCastZoom(){
-      castZoomModal.classList.remove("show");
-      castZoomModal.setAttribute("aria-hidden","true");
-    }
-
-    castZoomClose.addEventListener("click", closeCastZoom);
-    castZoomModal.addEventListener("click", (e) => { if(e.target === castZoomModal) closeCastZoom(); });
-
-    // ==========================================================
-    // EVENTS
-    // ==========================================================
-    window.addEventListener("keydown", (e) => {
-      if(e.key === "Escape"){
-        if(castZoomModal.classList.contains("show")) closeCastZoom();
-        else if(midiaModal.classList.contains("show")) closeMidiaModal();
-      }
-    });
-
-    search.addEventListener("input", renderMidias);
-
-    btnConnect.addEventListener("click", async () => {
+    async function applyTmdbItem(type, id){
       try{
-        setConnStatus("", "Conectando...");
-        await loadMidias();
+        msg("Buscando detalhes no TMDb...","ok");
+
+        if(type==="movie"){
+          const details = await tmdbFetch(`/movie/${id}?api_key=${TMDB_API_KEY}&language=pt-BR&append_to_response=credits,keywords,external_ids`);
+          const director = (details.credits?.crew||[]).filter(c=>c.job==="Director").map(c=>c.name).slice(0,3).join(", ");
+
+          mTipo.value = "FILME";
+          mTmdbId.value = String(details.id || "");
+          mImdbId.value = details.external_ids?.imdb_id || "";
+          mNome.value = details.title || mNome.value;
+          mTituloOriginal.value = details.original_title || "";
+          mIdiomaOriginal.value = details.original_language || "";
+          mTagline.value = details.tagline || "";
+          mStatusOficial.value = details.status || "";
+          mSinopse.value = details.overview || mSinopse.value;
+
+          mDataLancamento.value = details.release_date || "";
+          if(details.release_date) mAno.value = String(details.release_date).slice(0,4);
+
+          mImagemUrl.value = details.poster_path ? (TMDB_IMG + details.poster_path) : mImagemUrl.value;
+          mPoster.src = safePoster(mImagemUrl.value);
+
+          mVoteAverage.value = (details.vote_average ?? "");
+          mVoteCount.value = (details.vote_count ?? "");
+          mPopularity.value = (details.popularity ?? "");
+          mRuntime.value = (details.runtime ?? "");
+
+          mCast.value = toJsonString(pickTopCast(details.credits));
+          mKeywords.value = toJsonString(pickKeywords("movie", details.keywords));
+
+          modalSub.textContent = director ? `TMDb preenchido • Diretor: ${director}` : "TMDb preenchido";
+          msg("Preenchido pelo TMDb ✅","ok");
+          return;
+        }
+
+        const details = await tmdbFetch(`/tv/${id}?api_key=${TMDB_API_KEY}&language=pt-BR&append_to_response=credits,keywords,external_ids`);
+        const creators = (details.created_by||[]).map(x=>x.name).slice(0,3).join(", ");
+
+        mTipo.value = "SERIE";
+        mTmdbId.value = String(details.id || "");
+        mImdbId.value = details.external_ids?.imdb_id || "";
+        mNome.value = details.name || mNome.value;
+        mTituloOriginal.value = details.original_name || "";
+        mIdiomaOriginal.value = details.original_language || "";
+        mTagline.value = details.tagline || "";
+        mStatusOficial.value = details.status || "";
+        mSinopse.value = details.overview || mSinopse.value;
+
+        mFirstAir.value = details.first_air_date || "";
+        mLastAir.value = details.last_air_date || "";
+        if(details.first_air_date) mAno.value = String(details.first_air_date).slice(0,4);
+
+        mImagemUrl.value = details.poster_path ? (TMDB_IMG + details.poster_path) : mImagemUrl.value;
+        mPoster.src = safePoster(mImagemUrl.value);
+
+        mVoteAverage.value = (details.vote_average ?? "");
+        mVoteCount.value = (details.vote_count ?? "");
+        mPopularity.value = (details.popularity ?? "");
+
+        mEpRunTime.value = toJsonString(details.episode_run_time || []);
+        mSeasons.value = (details.number_of_seasons ?? "");
+        mEpisodes.value = (details.number_of_episodes ?? "");
+
+        mCast.value = toJsonString(pickTopCast(details.credits));
+        mKeywords.value = toJsonString(pickKeywords("tv", details.keywords));
+
+        modalSub.textContent = creators ? `TMDb preenchido • Criadores: ${creators}` : "TMDb preenchido";
+        msg("Preenchido pelo TMDb ✅","ok");
       }catch(err){
         console.error(err);
-        setConnStatus("err", "Falha ao conectar");
-        midiasList.innerHTML = "";
-        midiasCount.textContent = "0";
-        midiasEmpty.style.display = "block";
-        midiasEmpty.textContent = safeStr(err.message || err);
+        msg("Erro no TMDb (veja o console).","err");
       }
-    });
+    }
 
-    btnSaveConfig.addEventListener("click", () => {
-      const cfg = {
-        url: sbUrl.value.trim(),
-        key: sbKey.value.trim(),
-        table: sbTable.value.trim(),
-        order: sbOrder.value.trim()
-      };
-      localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg));
-      setConnStatus("ok", "Config salva");
-      setTimeout(()=> setConnStatus("", "Desconectado"), 1000);
-    });
-
-    btnClearConfig.addEventListener("click", () => {
-      localStorage.removeItem(CONFIG_KEY);
-      sbUrl.value = "";
-      sbKey.value = "";
-      sbTable.value = "midias";
-      sbOrder.value = "created_at.desc";
-      setConnStatus("", "Desconectado");
-    });
-
-    // ==========================================================
-    // BOOT
-    // ==========================================================
-    (function boot(){
+    btnTmdbSearch.onclick = async ()=>{
+      const q = tmdbQuery.value.trim();
+      if(!q){ msg("Digite algo para buscar.","err"); return; }
       try{
-        const cfg = JSON.parse(localStorage.getItem(CONFIG_KEY) || "null");
-        if(cfg){
-          sbUrl.value = cfg.url || "";
-          sbKey.value = cfg.key || "";
-          sbTable.value = cfg.table || "midias";
-          sbOrder.value = cfg.order || "created_at.desc";
-        }
-      }catch(_){}
+        const type = tmdbType.value;
+        msg("Buscando no TMDb...","ok");
+        const data = await tmdbFetch(`/search/${type}?api_key=${TMDB_API_KEY}&language=pt-BR&query=${encodeURIComponent(q)}&include_adult=false&page=1`);
+        showTmdbResults(data.results||[], type);
+      }catch(err){
+        console.error(err);
+        msg("Falha ao buscar no TMDb.","err");
+      }
+    };
 
-      setConnStatus("", "Desconectado");
-      midiasEmpty.style.display = "block";
-    })();
+    btnTmdbClear.onclick = ()=>{
+      tmdbQuery.value = "";
+      tmdbResults.style.display="none";
+      tmdbResults.innerHTML="";
+    };
+
+    // ========= Filters events =========
+    [fStatus,fTipo].forEach(el=>el.addEventListener("change", renderList));
+    [fNome,fNota].forEach(el=>el.addEventListener("input", renderList));
+
+    // ========= Init =========
+    (async ()=>{ await loadMidias(false); })();
   </script>
 </body>
 </html>
